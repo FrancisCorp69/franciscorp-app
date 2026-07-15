@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "476590468336",
+    "project_id": "franciscorp-app",
+    "storage_bucket": "franciscorp-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:476590468336:android:26124837d7d8c01d1a6635",
+        "android_client_info": {
+          "package_name": "com.franciscorp.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD2I-t5EFXtG_UfRJvqytdwyYkHgP5p2zY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
