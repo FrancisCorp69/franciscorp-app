@@ -1,11 +1,11 @@
 import {
-    Alert,
-    Image,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 import { router } from 'expo-router';
@@ -52,6 +52,8 @@ export default function RegistroScreen() {
           nombre,
           correo,
           telefono,
+          direccion: '',
+          ciudad: '',
           fechaRegistro: new Date(),
         }
       );

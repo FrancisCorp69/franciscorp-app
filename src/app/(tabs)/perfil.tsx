@@ -1,6 +1,10 @@
+import { useEffect, useState } from 'react';
+
 import {
+  ActivityIndicator,
   Alert,
   Image,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -10,138 +14,354 @@ import {
 import { router } from 'expo-router';
 
 import { signOut } from 'firebase/auth';
-import { auth } from '../../services/firebase';
+import { auth, db } from '../../services/firebase';
+
+import { doc, getDoc } from 'firebase/firestore';
+
 
 export default function PerfilScreen() {
-  async function cerrarSesion() {
+
+  const [cargando, setCargando] = useState(true);
+
+  const [nombre, setNombre] = useState('');
+  const [correo, setCorreo] = useState('');
+  const [telefono, setTelefono] = useState('');
+  const [direccion, setDireccion] = useState('');
+  const [ciudad, setCiudad] = useState('');
+
+
+
+  useEffect(() => {
+
+    cargarPerfil();
+
+  }, []);
+
+
+
+  async function cargarPerfil() {
+
     try {
+
+      const usuario = auth.currentUser;
+
+
+      if (!usuario) {
+
+        router.replace('/login');
+        return;
+
+      }
+
+
+      const documento = await getDoc(
+        doc(db, 'usuarios', usuario.uid)
+      );
+
+
+      if (documento.exists()) {
+
+        const datos = documento.data();
+
+
+        setNombre(datos.nombre || '');
+        setCorreo(datos.correo || usuario.email || '');
+        setTelefono(datos.telefono || '');
+        setDireccion(datos.direccion || '');
+        setCiudad(datos.ciudad || '');
+
+      }
+
+
+    } catch (error) {
+
+      Alert.alert(
+        'Error',
+        'No se pudo cargar el perfil.'
+      );
+
+
+    } finally {
+
+      setCargando(false);
+
+    }
+
+  }
+
+
+
+  async function cerrarSesion() {
+
+    try {
+
       await signOut(auth);
 
       router.replace('/login');
-    } catch (error) {
+
+
+    } catch {
+
       Alert.alert(
         'Error',
         'No se pudo cerrar la sesión.'
       );
+
     }
+
   }
 
+
+
+  if (cargando) {
+
+    return (
+
+      <View style={styles.cargando}>
+
+        <ActivityIndicator
+          size="large"
+          color="#208AEF"
+        />
+
+      </View>
+
+    );
+
+  }
+
+
+
   return (
-    <View style={styles.container}>
+
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.contenido}
+      showsVerticalScrollIndicator={false}
+    >
+
 
       <Image
         source={require('../../../assets/images/franciscorp-logo.png')}
         style={styles.foto}
       />
 
+
       <Text style={styles.titulo}>
-        Perfil
+        Mi Perfil
       </Text>
+
+
 
       <View style={styles.info}>
 
+
         <Text style={styles.label}>
-          Nombre:
+          Nombre
         </Text>
 
         <Text style={styles.valor}>
-          Usuario FrancisCorp
+          {nombre || 'No registrado'}
         </Text>
 
+
+
         <Text style={styles.label}>
-          Correo:
+          Correo
         </Text>
 
         <Text style={styles.valor}>
-          No registrado
+          {correo || 'No registrado'}
         </Text>
 
+
+
         <Text style={styles.label}>
-          Teléfono:
+          Teléfono
         </Text>
 
         <Text style={styles.valor}>
-          No registrado
+          {telefono || 'No registrado'}
         </Text>
 
+
+
         <Text style={styles.label}>
-          Dirección:
+          Dirección
         </Text>
 
         <Text style={styles.valor}>
-          No registrada
+          {direccion || 'No registrada'}
         </Text>
+
+
+
+        <Text style={styles.label}>
+          Ciudad
+        </Text>
+
+        <Text style={styles.valor}>
+          {ciudad || 'No registrada'}
+        </Text>
+
 
       </View>
 
+
+
       <TouchableOpacity
-        style={styles.boton}
-        onPress={cerrarSesion}
+        style={styles.botonEditar}
+        onPress={() => router.push('/editar-perfil')}
       >
-        <Text style={styles.textoBoton}>
-          Cerrar sesión
+
+        <Text style={styles.textoBotonEditar}>
+          Editar perfil
         </Text>
+
       </TouchableOpacity>
 
-    </View>
+
+
+
+      <TouchableOpacity
+        style={styles.botonCerrar}
+        onPress={cerrarSesion}
+      >
+
+        <Text style={styles.textoBotonCerrar}>
+          Cerrar sesión
+        </Text>
+
+      </TouchableOpacity>
+
+
+
+    </ScrollView>
+
   );
+
 }
+
+
 
 const styles = StyleSheet.create({
 
   container: {
-    flex: 1,
-    backgroundColor: '#ffffff',
-    alignItems: 'center',
-    padding: 25,
+
+    flex:1,
+    backgroundColor:'#ffffff',
+
   },
+
+
+  contenido: {
+
+    alignItems:'center',
+    padding:25,
+    paddingBottom:120,
+
+  },
+
+
+  cargando: {
+
+    flex:1,
+    justifyContent:'center',
+    alignItems:'center',
+    backgroundColor:'#ffffff',
+
+  },
+
 
   foto: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    marginTop: 50,
-    marginBottom: 20,
+
+    width:120,
+    height:120,
+    marginTop:40,
+
   },
+
 
   titulo: {
-    fontSize: 30,
-    fontWeight: 'bold',
-    color: '#208AEF',
-    marginBottom: 30,
+
+    fontSize:30,
+    fontWeight:'bold',
+    color:'#208AEF',
+    marginVertical:25,
+
   },
+
 
   info: {
-    width: '100%',
+
+    width:'100%',
+    backgroundColor:'#F5F8FC',
+    borderRadius:15,
+    padding:20,
+
   },
+
 
   label: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginTop: 15,
-    color: '#333333',
+
+    fontWeight:'bold',
+    color:'#208AEF',
+    marginTop:12,
+
   },
+
 
   valor: {
-    fontSize: 16,
-    marginTop: 5,
-    color: '#666666',
+
+    fontSize:16,
+    color:'#333333',
+    marginTop:5,
+
   },
 
-  boton: {
-    marginTop: 40,
-    width: '100%',
-    height: 55,
-    backgroundColor: '#208AEF',
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+
+  botonEditar: {
+
+    width:'100%',
+    height:55,
+    backgroundColor:'#208AEF',
+    borderRadius:12,
+    justifyContent:'center',
+    alignItems:'center',
+    marginTop:25,
+
   },
 
-  textoBoton: {
-    color: '#ffffff',
-    fontSize: 18,
-    fontWeight: 'bold',
+
+  textoBotonEditar: {
+
+    color:'#ffffff',
+    fontSize:18,
+    fontWeight:'bold',
+
   },
+
+
+  botonCerrar: {
+
+    width:'100%',
+    height:55,
+    backgroundColor:'#555555',
+    borderRadius:12,
+    justifyContent:'center',
+    alignItems:'center',
+    marginTop:15,
+
+  },
+
+
+  textoBotonCerrar: {
+
+    color:'#ffffff',
+    fontSize:18,
+    fontWeight:'bold',
+
+  },
+
 
 });
