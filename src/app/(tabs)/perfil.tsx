@@ -1,4 +1,5 @@
 import {
+  Alert,
   Image,
   StyleSheet,
   Text,
@@ -8,7 +9,23 @@ import {
 
 import { router } from 'expo-router';
 
+import { signOut } from 'firebase/auth';
+import { auth } from '../../services/firebase';
+
 export default function PerfilScreen() {
+  async function cerrarSesion() {
+    try {
+      await signOut(auth);
+
+      router.replace('/login');
+    } catch (error) {
+      Alert.alert(
+        'Error',
+        'No se pudo cerrar la sesión.'
+      );
+    }
+  }
+
   return (
     <View style={styles.container}>
 
@@ -17,11 +34,9 @@ export default function PerfilScreen() {
         style={styles.foto}
       />
 
-
       <Text style={styles.titulo}>
         Perfil
       </Text>
-
 
       <View style={styles.info}>
 
@@ -33,7 +48,6 @@ export default function PerfilScreen() {
           Usuario FrancisCorp
         </Text>
 
-
         <Text style={styles.label}>
           Correo:
         </Text>
@@ -42,7 +56,6 @@ export default function PerfilScreen() {
           No registrado
         </Text>
 
-
         <Text style={styles.label}>
           Teléfono:
         </Text>
@@ -50,7 +63,6 @@ export default function PerfilScreen() {
         <Text style={styles.valor}>
           No registrado
         </Text>
-
 
         <Text style={styles.label}>
           Dirección:
@@ -62,22 +74,18 @@ export default function PerfilScreen() {
 
       </View>
 
-
       <TouchableOpacity
-  style={styles.boton}
-  onPress={() => router.push('/login')}
->
-  <Text style={styles.textoBoton}>
-    Iniciar sesión
-  </Text>
-</TouchableOpacity>
-
+        style={styles.boton}
+        onPress={cerrarSesion}
+      >
+        <Text style={styles.textoBoton}>
+          Cerrar sesión
+        </Text>
+      </TouchableOpacity>
 
     </View>
   );
 }
-
-
 
 const styles = StyleSheet.create({
 
@@ -88,7 +96,6 @@ const styles = StyleSheet.create({
     padding: 25,
   },
 
-
   foto: {
     width: 120,
     height: 120,
@@ -97,7 +104,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
 
-
   titulo: {
     fontSize: 30,
     fontWeight: 'bold',
@@ -105,11 +111,9 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
 
-
   info: {
     width: '100%',
   },
-
 
   label: {
     fontSize: 16,
@@ -118,13 +122,11 @@ const styles = StyleSheet.create({
     color: '#333333',
   },
 
-
   valor: {
     fontSize: 16,
     marginTop: 5,
     color: '#666666',
   },
-
 
   boton: {
     marginTop: 40,
@@ -135,7 +137,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-
 
   textoBoton: {
     color: '#ffffff',
