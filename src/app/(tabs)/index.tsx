@@ -155,26 +155,27 @@ export default function HomeScreen() {
 
           <Text style={styles.seccion}>ROLES</Text>
 
-          {listaRoles.map((rol, index) => {
-            if (roles[rol.campo] !== true) {
-              return null;
-            }
+          {listaRoles.map(
+            (rol, index) =>
+              roles[rol.campo] && (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.itemRol}
+                  onPress={() => {
+                    setRolActivo(rol.nombre);
+                    setMenuAbierto(false);
+                  }}
+                >
+                  <Text style={styles.itemMenu}>
+                    {rol.icono} {rol.nombre}
+                  </Text>
 
-            return (
-              <TouchableOpacity
-                key={index}
-                onPress={() => {
-                  setRolActivo(rol.nombre);
-                  setMenuAbierto(false);
-                }}
-              >
-                <Text style={styles.itemMenu}>
-                  {rol.icono} {rol.nombre}
-                  {rolActivo === rol.nombre ? " 🟡" : ""}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+                  {rolActivo === rol.nombre && (
+                    <View style={styles.puntoActivo} />
+                  )}
+                </TouchableOpacity>
+              ),
+          )}
 
           <Text style={styles.seccion}>BILLETERAS</Text>
 
@@ -387,6 +388,19 @@ const styles = StyleSheet.create({
     marginTop: 15,
 
     color: "#333",
+  },
+  itemRol: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 15,
+  },
+
+  puntoActivo: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: "#FFD700",
   },
 
   header: {
