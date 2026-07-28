@@ -4,13 +4,7 @@ import { ScrollView, StyleSheet } from "react-native";
 
 import { auth, db } from "../../services/firebase";
 
-import Categories from "../../components/cliente/Categories";
-import DeliveryAddress from "../../components/cliente/DeliveryAddress";
-import FeaturedBusinesses from "../../components/cliente/FeaturedBusinesses";
 import Header from "../../components/cliente/Header";
-import MainBanner from "../../components/cliente/MainBanner";
-import SearchBar from "../../components/cliente/SearchBar";
-import ServicesGrid from "../../components/cliente/ServicesGrid";
 
 import {
   Business,
@@ -90,43 +84,34 @@ export default function ClienteScreen() {
 
 
   return (
+  <ScrollView
+    style={styles.container}
+    showsVerticalScrollIndicator={false}
+  >
 
-    <ScrollView
-      style={styles.container}
-      showsVerticalScrollIndicator={false}
-    >
+    <Header
+      nombre={nombre}
+      fotoPerfil={fotoPerfil}
+    />
 
+    {/* <DeliveryAddress /> */}
 
-      <Header
-        nombre={nombre}
-        fotoPerfil={fotoPerfil}
-      />
+    {/* <SearchBar /> */}
 
+    {/* <MainBanner /> */}
 
-      <DeliveryAddress />
+    {/* <ServicesGrid /> */}
 
+    {/* <FeaturedBusinesses
+      businesses={businesses}
+    /> */}
 
-      <SearchBar />
+    {/* <Categories /> */}
 
-
-      <MainBanner />
-
-<ServicesGrid />
-
-<FeaturedBusinesses
-  businesses={businesses}
-/>
-
-<Categories />
-
-
-    </ScrollView>
-
-  );
+  </ScrollView>
+);
 
 }
-
-
 
 const styles = StyleSheet.create({
 

@@ -1,5 +1,5 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 
 interface FeaturedBusinessesProps {
   businesses: any[];
@@ -8,79 +8,88 @@ interface FeaturedBusinessesProps {
 export default function FeaturedBusinesses({
   businesses,
 }: FeaturedBusinessesProps) {
-    console.log("DATOS EN FEATURED:", businesses);
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>
-        Negocios destacados
+        NEGOCIOS DESTACADOS 999
       </Text>
 
       {businesses.map((business) => (
-        <View
-          style={styles.card}
+        <Pressable
           key={business.id}
+          style={styles.card}
+          onPress={() => {
+            console.log("Abrir negocio:", business.nombre);
+          }}
         >
-
-          <View style={styles.logo}>
-            <MaterialCommunityIcons
-              name="store"
-              size={34}
-              color="#0066CC"
+          {business.foto ? (
+            <Image
+              source={{ uri: business.foto }}
+              style={styles.image}
             />
-          </View>
-
+          ) : (
+            <View style={styles.logo}>
+              <MaterialCommunityIcons
+                name="store"
+                size={34}
+                color="#0066CC"
+              />
+            </View>
+          )}
 
           <View style={styles.info}>
-
             <Text style={styles.name}>
               {business.nombre}
             </Text>
 
+            <Text style={styles.category}>
+              {business.categoria}
+            </Text>
 
             <Text style={styles.description}>
               {business.descripcion}
             </Text>
 
-
             <Text style={styles.address}>
-              📍 {business.direccion}
+              📍 {business.direccion}, {business.ciudad}
             </Text>
 
-
             <View style={styles.details}>
-
               <Text style={styles.detail}>
-                🚚 {business.tiempoEntrega} min
+                ⭐ {business.calificacion}
               </Text>
 
-
               <Text style={styles.detail}>
-                💵 ${business.costoEntrega}
+                🚚 ${business.costoEntrega}
               </Text>
 
-
               <Text style={styles.detail}>
-                ⭐ {business.totalCalificaciones || 0}
+                ⏱ {business.tiempoEntrega} min
               </Text>
-
             </View>
 
+            <Pressable
+              style={styles.button}
+              onPress={() => {
+                console.log("Ver negocio:", business.nombre);
+              }}
+            >
+              <Text style={styles.buttonText}>
+                Ver negocio
+              </Text>
+            </Pressable>
           </View>
-
-        </View>
+        </Pressable>
       ))}
     </View>
   );
 }
 
-
 const styles = StyleSheet.create({
-
   container: {
     marginHorizontal: 20,
     marginBottom: 30,
   },
-
 
   sectionTitle: {
     fontSize: 22,
@@ -89,14 +98,13 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
 
-
   card: {
     flexDirection: "row",
     backgroundColor: "#fff",
     borderRadius: 18,
-    padding: 16,
+    padding: 12,
+    marginBottom: 18,
     alignItems: "center",
-    marginBottom: 15,
 
     shadowColor: "#000",
     shadowOpacity: 0.08,
@@ -109,23 +117,25 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
 
-
   logo: {
-    width: 70,
-    height: 70,
-    borderRadius: 16,
+    width: 60,
+    height: 60,
+    borderRadius: 14,
     backgroundColor: "#F4F8FF",
-
     justifyContent: "center",
     alignItems: "center",
   },
 
+  image: {
+    width: 60,
+    height: 60,
+    borderRadius: 14,
+  },
 
   info: {
     flex: 1,
-    marginLeft: 15,
+    marginLeft: 12,
   },
-
 
   name: {
     fontSize: 18,
@@ -133,31 +143,47 @@ const styles = StyleSheet.create({
     color: "#222",
   },
 
-
-  description: {
-    marginTop: 5,
-    color: "#666",
-    fontSize: 14,
+  category: {
+    color: "#0066CC",
+    fontWeight: "600",
+    marginTop: 3,
+    textTransform: "capitalize",
   },
 
+  description: {
+    marginTop: 6,
+    color: "#666",
+  },
 
   address: {
-    marginTop: 5,
+    marginTop: 6,
     color: "#555",
     fontSize: 13,
   },
 
-
   details: {
     flexDirection: "row",
+    flexWrap: "wrap",
     marginTop: 10,
   },
 
-
   detail: {
     marginRight: 15,
-    fontSize: 13,
     color: "#444",
+    fontSize: 13,
   },
 
+  button: {
+    marginTop: 14,
+    backgroundColor: "#0066CC",
+    paddingVertical: 8,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+
+  buttonText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 14,
+  },
 });
