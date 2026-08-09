@@ -1,4 +1,5 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 
 interface FeaturedBusinessesProps {
@@ -8,78 +9,78 @@ interface FeaturedBusinessesProps {
 export default function FeaturedBusinesses({
   businesses,
 }: FeaturedBusinessesProps) {
+  const abrirNegocio = (business: any) => {
+    router.push({
+      pathname: "/negocio",
+      params: {
+        id: business.id || "",
+        nombre: business.nombre || "",
+        categoria: business.categoria || "",
+        descripcion: business.descripcion || "",
+        direccion: business.direccion || "",
+        ciudad: business.ciudad || "",
+        foto: business.foto || "",
+        calificacion: String(business.calificacion || ""),
+        costoEntrega: String(business.costoEntrega || ""),
+        tiempoEntrega: String(business.tiempoEntrega || ""),
+      },
+    });
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionTitle}>
-        NEGOCIOS DESTACADOS 999
-      </Text>
+      <Text style={styles.sectionTitle}>Negocios destacados</Text>
 
       {businesses.map((business) => (
-        <Pressable
-          key={business.id}
-          style={styles.card}
-          onPress={() => {
-            console.log("Abrir negocio:", business.nombre);
-          }}
-        >
+        <View key={business.id} style={styles.card}>
           {business.foto ? (
-            <Image
-              source={{ uri: business.foto }}
-              style={styles.image}
-            />
+            <Image source={{ uri: business.foto }} style={styles.image} />
           ) : (
             <View style={styles.logo}>
-              <MaterialCommunityIcons
-                name="store"
-                size={34}
-                color="#0066CC"
-              />
+              <MaterialCommunityIcons name="store" size={34} color="#0066CC" />
             </View>
           )}
 
           <View style={styles.info}>
-            <Text style={styles.name}>
-              {business.nombre}
-            </Text>
+            <Text style={styles.name}>{business.nombre || "Negocio"}</Text>
 
-            <Text style={styles.category}>
-              {business.categoria}
-            </Text>
+            {business.categoria ? (
+              <Text style={styles.category}>{business.categoria}</Text>
+            ) : null}
 
-            <Text style={styles.description}>
-              {business.descripcion}
-            </Text>
+            {business.descripcion ? (
+              <Text style={styles.description} numberOfLines={2}>
+                {business.descripcion}
+              </Text>
+            ) : null}
 
             <Text style={styles.address}>
-              📍 {business.direccion}, {business.ciudad}
+              📍 {business.direccion || "Dirección no disponible"}
+              {business.ciudad ? `, ${business.ciudad}` : ""}
             </Text>
 
             <View style={styles.details}>
               <Text style={styles.detail}>
-                ⭐ {business.calificacion}
+                ⭐ {business.calificacion || "0"}
               </Text>
 
               <Text style={styles.detail}>
-                🚚 ${business.costoEntrega}
+                🚚 ${business.costoEntrega || "0"}
               </Text>
 
               <Text style={styles.detail}>
-                ⏱ {business.tiempoEntrega} min
+                ⏱ {business.tiempoEntrega || "0"} min
               </Text>
             </View>
 
             <Pressable
               style={styles.button}
-              onPress={() => {
-                console.log("Ver negocio:", business.nombre);
-              }}
+              onPress={() => abrirNegocio(business)}
             >
-              <Text style={styles.buttonText}>
-                Ver negocio
-              </Text>
+              <Text style={styles.buttonText}>Ver negocio</Text>
             </Pressable>
           </View>
-        </Pressable>
+        </View>
       ))}
     </View>
   );
@@ -88,6 +89,7 @@ export default function FeaturedBusinesses({
 const styles = StyleSheet.create({
   container: {
     marginHorizontal: 20,
+    marginTop: 20,
     marginBottom: 30,
   },
 
@@ -176,7 +178,8 @@ const styles = StyleSheet.create({
   button: {
     marginTop: 14,
     backgroundColor: "#0066CC",
-    paddingVertical: 8,
+    paddingVertical: 9,
+    paddingHorizontal: 12,
     borderRadius: 10,
     alignItems: "center",
   },
