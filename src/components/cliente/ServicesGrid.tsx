@@ -1,5 +1,6 @@
-import { router } from "expo-router";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+
+import { router } from "expo-router";
 
 const servicios = [
   {
@@ -66,8 +67,8 @@ export default function ServicesGrid() {
           <TouchableOpacity
             key={item.id}
             style={styles.card}
-            activeOpacity={0.8}
             onPress={() => abrirServicio(item.ruta)}
+            activeOpacity={0.8}
           >
             <Text style={styles.icono}>{item.icono}</Text>
 
@@ -99,13 +100,22 @@ const styles = StyleSheet.create({
 
   card: {
     width: "31%",
-    height: 95,
+    minHeight: 95,
     backgroundColor: "#ffffff",
     borderRadius: 15,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 12,
+    marginBottom: 14,
+
     elevation: 3,
+
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 5,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
   },
 
   icono: {
