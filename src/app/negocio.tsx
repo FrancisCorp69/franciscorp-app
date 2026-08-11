@@ -1,12 +1,12 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import {
-    Image,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 
 export default function NegocioScreen() {
@@ -24,12 +24,14 @@ export default function NegocioScreen() {
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      {/* BOTÓN VOLVER */}
       <Pressable style={styles.backButton} onPress={() => router.back()}>
-        <MaterialCommunityIcons name="arrow-left" size={26} color="#222" />
+        <MaterialCommunityIcons name="arrow-left" size={24} color="#222" />
 
         <Text style={styles.backText}>Volver</Text>
       </Pressable>
 
+      {/* IMAGEN DEL NEGOCIO */}
       {foto ? (
         <Image source={{ uri: foto }} style={styles.cover} />
       ) : (
@@ -38,6 +40,7 @@ export default function NegocioScreen() {
         </View>
       )}
 
+      {/* INFORMACIÓN */}
       <View style={styles.content}>
         <Text style={styles.name}>{nombre}</Text>
 
@@ -45,6 +48,7 @@ export default function NegocioScreen() {
 
         <Text style={styles.description}>{descripcion}</Text>
 
+        {/* DATOS DEL NEGOCIO */}
         <View style={styles.infoBox}>
           <View style={styles.infoRow}>
             <MaterialCommunityIcons
@@ -90,6 +94,7 @@ export default function NegocioScreen() {
           </View>
         </View>
 
+        {/* PRODUCTOS Y SERVICIOS */}
         <Text style={styles.sectionTitle}>Productos y servicios</Text>
 
         <View style={styles.emptyBox}>
@@ -199,6 +204,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: "#F7F7F7",
     alignItems: "center",
+    marginBottom: 30,
   },
 
   emptyTitle: {

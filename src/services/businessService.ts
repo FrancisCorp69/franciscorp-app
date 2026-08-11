@@ -11,15 +11,24 @@ export interface Business {
   ciudad?: string;
   foto?: string;
   calificacion?: number;
+  costoEntrega?: number;
   tiempoEntrega?: number;
   activo?: boolean;
 }
 
 export async function getBusinesses(): Promise<Business[]> {
-  const snapshot = await getDocs(collection(db, "negocios"));
+  try {
+    const snapshot = await getDocs(collection(db, "negocios"));
 
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as Business[];
+    const negocios: Business[] = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as Business[];
+
+    return negocios;
+  } catch (error) {
+    console.error("Error obteniendo negocios:", error);
+
+    return [];
+  }
 }
