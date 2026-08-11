@@ -165,7 +165,11 @@ export default function Header({ nombre, fotoPerfil }: HeaderProps) {
               <TouchableOpacity
                 style={styles.rol}
                 activeOpacity={0.7}
-                onPress={() => seleccionarRol("Negocios")}
+                onPress={() => {
+                  seleccionarRol("Negocios");
+                  setMenuAbierto(false);
+                  router.push("/rol-negocios");
+                }}
               >
                 <MaterialCommunityIcons
                   name="storefront-outline"
