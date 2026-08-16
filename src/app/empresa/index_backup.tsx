@@ -11,9 +11,6 @@ import {
   View,
 } from "react-native";
 
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
-import { auth, db } from "../../services/firebase";
-
 type TipoOferta = "productos" | "servicios" | "ambos";
 
 type DiaHorario = {
@@ -26,10 +23,10 @@ type DiaHorario = {
 const HORARIOS_INICIALES: DiaHorario[] = [
   { dia: "Lunes", abierto: true, apertura: "09:00", cierre: "20:00" },
   { dia: "Martes", abierto: true, apertura: "09:00", cierre: "20:00" },
-  { dia: "Mi�rcoles", abierto: true, apertura: "09:00", cierre: "20:00" },
+  { dia: "Miércoles", abierto: true, apertura: "09:00", cierre: "20:00" },
   { dia: "Jueves", abierto: true, apertura: "09:00", cierre: "20:00" },
   { dia: "Viernes", abierto: true, apertura: "09:00", cierre: "20:00" },
-  { dia: "S�bado", abierto: true, apertura: "09:00", cierre: "20:00" },
+  { dia: "Sábado", abierto: true, apertura: "09:00", cierre: "20:00" },
   { dia: "Domingo", abierto: false, apertura: "09:00", cierre: "20:00" },
 ];
 
@@ -52,12 +49,12 @@ const categoriasRestaurante = [
   "Japonesa",
   "Peruana",
   "Colombiana",
-  "Comida r�pida",
+  "Comida rápida",
   "Parrillada",
   "Mariscos",
-  "Cafeter�a",
-  "Panader�a",
-  "Pasteler�a",
+  "Cafetería",
+  "Panadería",
+  "Pastelería",
   "Postres",
   "Bebidas",
   "Otra",
@@ -68,14 +65,14 @@ const categoriasTienda = [
   "Supermercado",
   "Ropa",
   "Calzado",
-  "Tecnolog�a",
+  "Tecnología",
   "Hogar",
-  "Ferreter�a",
+  "Ferretería",
   "Mascotas",
-  "Papeler�a",
+  "Papelería",
   "Regalos",
   "Belleza",
-  "Electr�nica",
+  "Electrónica",
   "Otra",
 ];
 
@@ -85,28 +82,28 @@ const categoriasFarmacia = [
   "Higiene",
   "Vitaminas",
   "Primeros auxilios",
-  "Beb�s",
+  "Bebés",
   "Higiene bucal",
-  "Dermocosm�tica",
-  "Dispositivos m�dicos",
+  "Dermocosmética",
+  "Dispositivos médicos",
   "Otra",
 ];
 
 const categoriasServicios = [
   "Electricidad",
-  "Plomer�a",
+  "Plomería",
   "Limpieza",
   "Reparaciones",
-  "Construcci�n",
-  "Dise�o",
-  "Programaci�n",
+  "Construcción",
+  "Diseño",
+  "Programación",
   "Marketing",
   "Contabilidad",
-  "Asesor�a",
-  "Fotograf�a",
+  "Asesoría",
+  "Fotografía",
   "Eventos",
   "Belleza",
-  "Educaci�n",
+  "Educación",
   "Transporte",
   "Servicios profesionales",
   "Otra",
@@ -115,7 +112,7 @@ const categoriasServicios = [
 const categoriasTransporte = [
   "Pasajeros",
   "Carga",
-  "Mensajer�a",
+  "Mensajería",
   "Transporte empresarial",
   "Mudanzas",
   "Otro",
@@ -126,9 +123,9 @@ const categoriasProfesional = [
   "Contador",
   "Arquitecto",
   "Ingeniero",
-  "Dise�ador",
+  "Diseñador",
   "Programador",
-  "Fot�grafo",
+  "Fotógrafo",
   "Profesor",
   "Consultor",
   "Asesor",
@@ -232,40 +229,40 @@ export default function CrearNegocioScreen() {
 
   const validarFormulario = () => {
     if (!nombre.trim()) {
-      Alert.alert("Falta informaci�n", "Ingresa el nombre del negocio.");
+      Alert.alert("Falta información", "Ingresa el nombre del negocio.");
       return false;
     }
 
     if (!categoria.trim() && tipo !== "otro") {
-      Alert.alert("Falta informaci�n", "Ingresa o selecciona una categor�a.");
+      Alert.alert("Falta información", "Ingresa o selecciona una categoría.");
       return false;
     }
 
     if (!descripcion.trim()) {
-      Alert.alert("Falta informaci�n", "Agrega una descripci�n del negocio.");
+      Alert.alert("Falta información", "Agrega una descripción del negocio.");
       return false;
     }
 
     if (!direccion.trim()) {
-      Alert.alert("Falta informaci�n", "Ingresa la direcci�n.");
+      Alert.alert("Falta información", "Ingresa la dirección.");
       return false;
     }
 
     if (!ciudad.trim()) {
-      Alert.alert("Falta informaci�n", "Ingresa la ciudad.");
+      Alert.alert("Falta información", "Ingresa la ciudad.");
       return false;
     }
 
     if (!tipoOferta) {
       Alert.alert(
-        "Falta informaci�n",
-        "Selecciona si ofrecer�s productos, servicios o ambos.",
+        "Falta información",
+        "Selecciona si ofrecerás productos, servicios o ambos.",
       );
       return false;
     }
 
     if (tipo === "otro" && !otroTipo.trim()) {
-      Alert.alert("Falta informaci�n", "Indica qu� tipo de negocio tienes.");
+      Alert.alert("Falta información", "Indica qué tipo de negocio tienes.");
       return false;
     }
 
@@ -280,119 +277,21 @@ export default function CrearNegocioScreen() {
     setMostrarVistaPrevia(true);
   };
 
-  const crearNegocio = async () => {
+  const crearNegocio = () => {
     if (!validarFormulario()) {
       return;
     }
 
-    try {
-      const usuario = auth.currentUser;
-
-      if (!usuario) {
-        Alert.alert(
-          "Sesión requerida",
-          "Debes iniciar sesión para crear un negocio.",
-        );
-        return;
-      }
-
-      const negocio = {
-        propietarioId: usuario.uid,
-
-        nombre: nombre.trim(),
-        tipo,
-        tipoNombre,
-        categoria: categoria.trim(),
-        descripcion: descripcion.trim(),
-
-        contacto: {
-          telefono: telefono.trim(),
-          whatsapp: whatsapp.trim(),
-          correo: correo.trim(),
-          redesSociales: redesSociales.trim(),
-          paginaWeb: paginaWeb.trim(),
+    Alert.alert(
+      "Negocio preparado",
+      "La información está completa. En el siguiente paso conectaremos este botón con Firebase para guardar el negocio.",
+      [
+        {
+          text: "Aceptar",
+          onPress: () => router.back(),
         },
-
-        ubicacion: {
-          direccion: direccion.trim(),
-          ciudad: ciudad.trim(),
-          provincia: provincia.trim(),
-          referencia: referencia.trim(),
-          zonaCobertura: zonaCobertura.trim(),
-        },
-
-        horarios,
-
-        oferta: {
-          tipo: tipoOferta,
-        },
-
-        datosEspecificos: {
-          tipoComida: tipoComida.trim(),
-          modalidadRestaurante: modalidadRestaurante.trim(),
-
-          tipoTienda: tipoTienda.trim(),
-          marcas: marcas.trim(),
-
-          farmaceutico: farmaceutico.trim(),
-          informacionLegal: informacionLegal.trim(),
-
-          categoriaServicio: categoriaServicio.trim(),
-
-          tipoTransporte: tipoTransporte.trim(),
-          tipoVehiculo: tipoVehiculo.trim(),
-          marcaVehiculo: marcaVehiculo.trim(),
-          modeloVehiculo: modeloVehiculo.trim(),
-          anioVehiculo: anioVehiculo.trim(),
-          colorVehiculo: colorVehiculo.trim(),
-          capacidadVehiculo: capacidadVehiculo.trim(),
-          placaVehiculo: placaVehiculo.trim(),
-          precioBase: precioBase.trim(),
-          precioKilometro: precioKilometro.trim(),
-
-          razonSocial: razonSocial.trim(),
-          ruc: ruc.trim(),
-          sector: sector.trim(),
-
-          profesion: profesion.trim(),
-          especialidad: especialidad.trim(),
-          experiencia: experiencia.trim(),
-          certificaciones: certificaciones.trim(),
-          modalidadProfesional: modalidadProfesional.trim(),
-
-          otroTipo: otroTipo.trim(),
-        },
-
-        estado: "activo",
-        creadoEn: serverTimestamp(),
-        actualizadoEn: serverTimestamp(),
-      };
-
-      const referenciaNegocio = await addDoc(
-        collection(db, "negocios"),
-        negocio,
-      );
-
-      console.log("NEGOCIO CREADO:", referenciaNegocio.id);
-
-      Alert.alert(
-        "¡Negocio creado!",
-        "Tu negocio se ha registrado correctamente en FrancisCorp.",
-        [
-          {
-            text: "Aceptar",
-            onPress: () => router.back(),
-          },
-        ],
-      );
-    } catch (error) {
-      console.error("ERROR AL CREAR NEGOCIO:", error);
-
-      Alert.alert(
-        "Error",
-        "No pudimos crear el negocio. Revisa tu conexión e inténtalo nuevamente.",
-      );
-    }
+      ],
+    );
   };
 
   const renderCategoria = () => {
@@ -405,11 +304,11 @@ export default function CrearNegocioScreen() {
             style={styles.input}
             value={otroTipo}
             onChangeText={setOtroTipo}
-            placeholder="Ej. Florister�a"
+            placeholder="Ej. Floristería"
             placeholderTextColor="#999"
           />
 
-          <Text style={styles.label}>Categor�a</Text>
+          <Text style={styles.label}>Categoría</Text>
 
           <TextInput
             style={styles.input}
@@ -424,7 +323,7 @@ export default function CrearNegocioScreen() {
 
     return (
       <>
-        <Text style={styles.label}>Categor�a *</Text>
+        <Text style={styles.label}>Categoría *</Text>
 
         <View style={styles.chipsContainer}>
           {categorias.map((item) => {
@@ -451,7 +350,7 @@ export default function CrearNegocioScreen() {
 
   const renderOferta = () => (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>�Qu� quieres ofrecer?</Text>
+      <Text style={styles.sectionTitle}>¿Qué quieres ofrecer?</Text>
 
       <Pressable
         style={[
@@ -547,7 +446,7 @@ export default function CrearNegocioScreen() {
       case "restaurante":
         return (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Informaci�n gastron�mica</Text>
+            <Text style={styles.sectionTitle}>Información gastronómica</Text>
 
             <Text style={styles.label}>Tipo de comida</Text>
 
@@ -574,7 +473,7 @@ export default function CrearNegocioScreen() {
       case "tienda":
         return (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Informaci�n de la tienda</Text>
+            <Text style={styles.sectionTitle}>Información de la tienda</Text>
 
             <Text style={styles.label}>Tipo de tienda</Text>
 
@@ -592,7 +491,7 @@ export default function CrearNegocioScreen() {
               style={styles.input}
               value={marcas}
               onChangeText={setMarcas}
-              placeholder="Ej. Coca-Cola, Nestl�..."
+              placeholder="Ej. Coca-Cola, Nestlé..."
               placeholderTextColor="#999"
             />
           </View>
@@ -601,9 +500,9 @@ export default function CrearNegocioScreen() {
       case "farmacia":
         return (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Informaci�n de farmacia</Text>
+            <Text style={styles.sectionTitle}>Información de farmacia</Text>
 
-            <Text style={styles.label}>Farmac�utico responsable</Text>
+            <Text style={styles.label}>Farmacéutico responsable</Text>
 
             <TextInput
               style={styles.input}
@@ -613,13 +512,13 @@ export default function CrearNegocioScreen() {
               placeholderTextColor="#999"
             />
 
-            <Text style={styles.label}>Informaci�n adicional</Text>
+            <Text style={styles.label}>Información adicional</Text>
 
             <TextInput
               style={[styles.input, styles.textArea]}
               value={informacionLegal}
               onChangeText={setInformacionLegal}
-              placeholder="Informaci�n que consideres necesaria"
+              placeholder="Información que consideres necesaria"
               placeholderTextColor="#999"
               multiline
             />
@@ -629,7 +528,7 @@ export default function CrearNegocioScreen() {
       case "servicios":
         return (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Informaci�n del servicio</Text>
+            <Text style={styles.sectionTitle}>Información del servicio</Text>
 
             <Text style={styles.label}>Especialidad del servicio</Text>
 
@@ -656,7 +555,7 @@ export default function CrearNegocioScreen() {
       case "transporte":
         return (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Informaci�n de transporte</Text>
+            <Text style={styles.sectionTitle}>Información de transporte</Text>
 
             <Text style={styles.label}>Tipo de transporte</Text>
 
@@ -668,13 +567,13 @@ export default function CrearNegocioScreen() {
               placeholderTextColor="#999"
             />
 
-            <Text style={styles.label}>Tipo de veh�culo</Text>
+            <Text style={styles.label}>Tipo de vehículo</Text>
 
             <TextInput
               style={styles.input}
               value={tipoVehiculo}
               onChangeText={setTipoVehiculo}
-              placeholder="Ej. Autom�vil"
+              placeholder="Ej. Automóvil"
               placeholderTextColor="#999"
             />
 
@@ -698,7 +597,7 @@ export default function CrearNegocioScreen() {
               placeholderTextColor="#999"
             />
 
-            <Text style={styles.label}>A�o</Text>
+            <Text style={styles.label}>Año</Text>
 
             <TextInput
               style={styles.input}
@@ -751,7 +650,7 @@ export default function CrearNegocioScreen() {
               keyboardType="decimal-pad"
             />
 
-            <Text style={styles.label}>Precio por kil�metro</Text>
+            <Text style={styles.label}>Precio por kilómetro</Text>
 
             <TextInput
               style={styles.input}
@@ -767,15 +666,15 @@ export default function CrearNegocioScreen() {
       case "empresa":
         return (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Informaci�n empresarial</Text>
+            <Text style={styles.sectionTitle}>Información empresarial</Text>
 
-            <Text style={styles.label}>Raz�n social</Text>
+            <Text style={styles.label}>Razón social</Text>
 
             <TextInput
               style={styles.input}
               value={razonSocial}
               onChangeText={setRazonSocial}
-              placeholder="Raz�n social"
+              placeholder="Razón social"
               placeholderTextColor="#999"
             />
 
@@ -785,7 +684,7 @@ export default function CrearNegocioScreen() {
               style={styles.input}
               value={ruc}
               onChangeText={setRuc}
-              placeholder="N�mero de RUC"
+              placeholder="Número de RUC"
               placeholderTextColor="#999"
               keyboardType="numeric"
             />
@@ -807,7 +706,7 @@ export default function CrearNegocioScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Perfil profesional</Text>
 
-            <Text style={styles.label}>Profesi�n</Text>
+            <Text style={styles.label}>Profesión</Text>
 
             <TextInput
               style={styles.input}
@@ -833,7 +732,7 @@ export default function CrearNegocioScreen() {
               style={styles.input}
               value={experiencia}
               onChangeText={setExperiencia}
-              placeholder="Ej. 5 a�os"
+              placeholder="Ej. 5 años"
               placeholderTextColor="#999"
             />
 
@@ -848,7 +747,7 @@ export default function CrearNegocioScreen() {
               multiline
             />
 
-            <Text style={styles.label}>Modalidad de atenci�n</Text>
+            <Text style={styles.label}>Modalidad de atención</Text>
 
             <TextInput
               style={styles.input}
@@ -863,13 +762,13 @@ export default function CrearNegocioScreen() {
       case "otro":
         return (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Informaci�n adicional</Text>
+            <Text style={styles.sectionTitle}>Información adicional</Text>
 
-            <Text style={styles.label}>Cu�ntanos sobre tu negocio</Text>
+            <Text style={styles.label}>Cuéntanos sobre tu negocio</Text>
 
             <TextInput
               style={[styles.input, styles.textArea]}
-              placeholder="Describe qu� productos o servicios ofrecer�s"
+              placeholder="Describe qué productos o servicios ofrecerás"
               placeholderTextColor="#999"
               multiline
             />
@@ -883,7 +782,7 @@ export default function CrearNegocioScreen() {
 
   const renderHorarios = () => (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Horarios de atenci�n</Text>
+      <Text style={styles.sectionTitle}>Horarios de atención</Text>
 
       {horarios.map((horario, indice) => (
         <View style={styles.horarioCard} key={horario.dia}>
@@ -1023,7 +922,7 @@ export default function CrearNegocioScreen() {
             <Text style={styles.title}>Vista previa</Text>
 
             <Text style={styles.subtitle}>
-              As� se ver� tu negocio en FrancisCorp
+              Así se verá tu negocio en FrancisCorp
             </Text>
           </View>
         </View>
@@ -1038,7 +937,7 @@ export default function CrearNegocioScreen() {
           />
 
           <Text style={styles.previewInfoText}>
-            Revisa la informaci�n antes de crear tu negocio.
+            Revisa la información antes de crear tu negocio.
           </Text>
         </View>
 
@@ -1056,7 +955,7 @@ export default function CrearNegocioScreen() {
           style={styles.editButton}
           onPress={() => setMostrarVistaPrevia(false)}
         >
-          <Text style={styles.editButtonText}>Editar informaci�n</Text>
+          <Text style={styles.editButtonText}>Editar información</Text>
         </Pressable>
 
         <View style={styles.bottomSpace} />
@@ -1104,10 +1003,10 @@ export default function CrearNegocioScreen() {
         </View>
       </View>
 
-      {/* ================= INFORMACI�N GENERAL ================= */}
+      {/* ================= INFORMACIÓN GENERAL ================= */}
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Informaci�n del negocio</Text>
+        <Text style={styles.sectionTitle}>Información del negocio</Text>
 
         <Text style={styles.label}>Nombre del negocio *</Text>
 
@@ -1115,13 +1014,13 @@ export default function CrearNegocioScreen() {
           style={styles.input}
           value={nombre}
           onChangeText={setNombre}
-          placeholder="Ej. El B�nker"
+          placeholder="Ej. El Búnker"
           placeholderTextColor="#999"
         />
 
         {renderCategoria()}
 
-        <Text style={styles.label}>Descripci�n *</Text>
+        <Text style={styles.label}>Descripción *</Text>
 
         <TextInput
           style={[styles.input, styles.textArea]}
@@ -1139,7 +1038,7 @@ export default function CrearNegocioScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Contacto</Text>
 
-        <Text style={styles.label}>Tel�fono</Text>
+        <Text style={styles.label}>Teléfono</Text>
 
         <TextInput
           style={styles.input}
@@ -1156,12 +1055,12 @@ export default function CrearNegocioScreen() {
           style={styles.input}
           value={whatsapp}
           onChangeText={setWhatsapp}
-          placeholder="N�mero de WhatsApp"
+          placeholder="Número de WhatsApp"
           placeholderTextColor="#999"
           keyboardType="phone-pad"
         />
 
-        <Text style={styles.label}>Correo electr�nico</Text>
+        <Text style={styles.label}>Correo electrónico</Text>
 
         <TextInput
           style={styles.input}
@@ -1184,7 +1083,7 @@ export default function CrearNegocioScreen() {
           autoCapitalize="none"
         />
 
-        <Text style={styles.label}>P�gina web</Text>
+        <Text style={styles.label}>Página web</Text>
 
         <TextInput
           style={styles.input}
@@ -1196,10 +1095,10 @@ export default function CrearNegocioScreen() {
         />
       </View>
 
-      {/* ================= UBICACI�N ================= */}
+      {/* ================= UBICACIÓN ================= */}
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Ubicaci�n</Text>
+        <Text style={styles.sectionTitle}>Ubicación</Text>
 
         <View style={styles.mapPlaceholder}>
           <MaterialCommunityIcons
@@ -1208,21 +1107,21 @@ export default function CrearNegocioScreen() {
             color="#0066CC"
           />
 
-          <Text style={styles.mapTitle}>Ubicaci�n en mapa</Text>
+          <Text style={styles.mapTitle}>Ubicación en mapa</Text>
 
           <Text style={styles.mapText}>
-            M�s adelante conectaremos Google Maps para seleccionar la ubicaci�n
+            Más adelante conectaremos Google Maps para seleccionar la ubicación
             exacta.
           </Text>
         </View>
 
-        <Text style={styles.label}>Direcci�n *</Text>
+        <Text style={styles.label}>Dirección *</Text>
 
         <TextInput
           style={styles.input}
           value={direccion}
           onChangeText={setDireccion}
-          placeholder="Ingresa la direcci�n"
+          placeholder="Ingresa la dirección"
           placeholderTextColor="#999"
         />
 
@@ -1242,7 +1141,7 @@ export default function CrearNegocioScreen() {
           style={styles.input}
           value={provincia}
           onChangeText={setProvincia}
-          placeholder="Ej. Manab�"
+          placeholder="Ej. Manabí"
           placeholderTextColor="#999"
         />
 
@@ -1279,7 +1178,7 @@ export default function CrearNegocioScreen() {
 
       {renderOferta()}
 
-      {/* ================= INFORMACI�N FINAL ================= */}
+      {/* ================= INFORMACIÓN FINAL ================= */}
 
       <View style={styles.infoBox}>
         <MaterialCommunityIcons
@@ -1290,7 +1189,7 @@ export default function CrearNegocioScreen() {
 
         <Text style={styles.infoText}>
           Puedes crear varios negocios dentro de FrancisCorp. Cada negocio
-          tendr� su propia informaci�n, productos y servicios.
+          tendrá su propia información, productos y servicios.
         </Text>
       </View>
 

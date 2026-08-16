@@ -65,9 +65,10 @@ export default function CrearNegocioScreen() {
     console.log("TIPO DE NEGOCIO SELECCIONADO:", tipo);
 
     router.push({
-      pathname: "/crear-negocio",
+      pathname: "/empresa",
       params: {
         tipo: tipo.id,
+        nombreTipo: tipo.nombre,
       },
     });
   };

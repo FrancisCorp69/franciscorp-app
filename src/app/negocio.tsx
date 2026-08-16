@@ -1,111 +1,285 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { router, useLocalSearchParams } from "expo-router";
-import {
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { router } from "expo-router";
+import { onAuthStateChanged } from "firebase/auth";
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { useEffect, useState } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
-export default function NegocioScreen() {
-  const params = useLocalSearchParams();
+import { auth, db } from "../services/firebase";
 
-  const nombre = String(params.nombre || "Negocio");
-  const categoria = String(params.categoria || "Negocio");
-  const descripcion = String(params.descripcion || "Información del negocio.");
-  const direccion = String(params.direccion || "Dirección no disponible");
-  const ciudad = String(params.ciudad || "");
-  const foto = String(params.foto || "");
-  const calificacion = String(params.calificacion || "0");
-  const costoEntrega = String(params.costoEntrega || "0");
-  const tiempoEntrega = String(params.tiempoEntrega || "0");
+interface Negocio {
+  id: string;
+  nombre?: string;
+  tipo?: string;
+  tipoNombre?: string;
+  categoria?: string;
+  descripcion?: string;
+  estado?: string;
+
+  contacto?: {
+    telefono?: string;
+    whatsapp?: string;
+    correo?: string;
+  };
+
+  ubicacion?: {
+    direccion?: string;
+    ciudad?: string;
+    provincia?: string;
+  };
+
+  oferta?: {
+    tipo?: string;
+  };
+}
+
+export default function RolNegociosScreen() {
+  const [negocios, setNegocios] = useState<Negocio[]>([]);
+  const [cargando, setCargando] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (usuario) => {
+      if (!usuario) {
+        setNegocios([]);
+        setCargando(false);
+        return;
+      }
+
+      try {
+        console.log("USUARIO EN NEGOCIOS:", usuario.uid);
+
+        const consulta = query(
+          collection(db, "negocios"),
+          where("propietarioId", "==", usuario.uid),
+        );
+
+        const snapshot = await getDocs(consulta);
+
+        const misNegocios: Negocio[] = snapshot.docs.map((documento) => ({
+          id: documento.id,
+          ...documento.data(),
+        })) as Negocio[];
+
+        console.log("MIS NEGOCIOS:", misNegocios);
+        console.log("CANTIDAD DE NEGOCIOS:", misNegocios.length);
+
+        setNegocios(misNegocios);
+      } catch (error) {
+        console.error("ERROR CARGANDO MIS NEGOCIOS:", error);
+        setNegocios([]);
+      } finally {
+        setCargando(false);
+      }
+    });
+
+    return unsubscribe;
+  }, []);
+
+  const abrirNegocio = (negocio: Negocio) => {
+    router.push({
+      pathname: "/negocio",
+      params: {
+        id: negocio.id,
+        nombre: negocio.nombre || "",
+        categoria: negocio.categoria || "",
+        descripcion: negocio.descripcion || "",
+        direccion: negocio.ubicacion?.direccion || "",
+        ciudad: negocio.ubicacion?.ciudad || "",
+        estado: negocio.estado || "",
+      },
+    });
+  };
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* BOTÓN VOLVER */}
-      <Pressable style={styles.backButton} onPress={() => router.back()}>
-        <MaterialCommunityIcons name="arrow-left" size={24} color="#222" />
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.contentContainer}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* ================= ENCABEZADO ================= */}
 
-        <Text style={styles.backText}>Volver</Text>
+      <View style={styles.header}>
+        <Pressable style={styles.backButton} onPress={() => router.back()}>
+          <MaterialCommunityIcons name="arrow-left" size={26} color="#222" />
+        </Pressable>
+
+        <View style={styles.headerText}>
+          <Text style={styles.title}>Negocios</Text>
+
+          <Text style={styles.subtitle}>
+            Tu espacio para ofrecer productos y servicios
+          </Text>
+        </View>
+      </View>
+
+      {/* ================= PRESENTACIÓN ================= */}
+
+      <View style={styles.welcomeBox}>
+        <View style={styles.iconCircle}>
+          <MaterialCommunityIcons
+            name="storefront-outline"
+            size={42}
+            color="#0066CC"
+          />
+        </View>
+
+        <Text style={styles.welcomeTitle}>Bienvenido a Negocios</Text>
+
+        <Text style={styles.welcomeText}>
+          Crea y administra tus negocios dentro de FrancisCorp. Puedes ofrecer
+          productos, servicios o ambos.
+        </Text>
+      </View>
+
+      {/* ================= CREAR NEGOCIO ================= */}
+
+      <Pressable
+        style={styles.createButton}
+        onPress={() => {
+          router.push("/crear-negocio");
+        }}
+      >
+        <MaterialCommunityIcons
+          name="plus-circle-outline"
+          size={25}
+          color="#fff"
+        />
+
+        <Text style={styles.createButtonText}>Crear mi negocio</Text>
       </Pressable>
 
-      {/* IMAGEN DEL NEGOCIO */}
-      {foto ? (
-        <Image source={{ uri: foto }} style={styles.cover} />
+      {/* ================= MIS NEGOCIOS ================= */}
+
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>Mis negocios</Text>
+
+        {!cargando && negocios.length > 0 && (
+          <Text style={styles.countText}>
+            {negocios.length} negocio
+            {negocios.length !== 1 ? "s" : ""}
+          </Text>
+        )}
+      </View>
+
+      {cargando ? (
+        <View style={styles.emptyBox}>
+          <MaterialCommunityIcons name="loading" size={42} color="#0066CC" />
+
+          <Text style={styles.emptyTitle}>Cargando tus negocios...</Text>
+        </View>
+      ) : negocios.length === 0 ? (
+        <View style={styles.emptyBox}>
+          <MaterialCommunityIcons
+            name="store-off-outline"
+            size={48}
+            color="#999"
+          />
+
+          <Text style={styles.emptyTitle}>Todavía no tienes negocios</Text>
+
+          <Text style={styles.emptyText}>
+            Cuando crees un negocio aparecerá aquí para que puedas
+            administrarlo.
+          </Text>
+        </View>
       ) : (
-        <View style={styles.coverPlaceholder}>
-          <MaterialCommunityIcons name="store" size={70} color="#0066CC" />
+        <View style={styles.businessList}>
+          {negocios.map((negocio) => (
+            <Pressable
+              key={negocio.id}
+              style={styles.businessCard}
+              onPress={() => abrirNegocio(negocio)}
+            >
+              {/* ICONO */}
+
+              <View style={styles.businessIcon}>
+                <MaterialCommunityIcons
+                  name="store"
+                  size={32}
+                  color="#0066CC"
+                />
+              </View>
+
+              {/* INFORMACIÓN */}
+
+              <View style={styles.businessInfo}>
+                <Text style={styles.businessName} numberOfLines={1}>
+                  {negocio.nombre || "Sin nombre"}
+                </Text>
+
+                <Text style={styles.businessCategory}>
+                  {negocio.categoria ||
+                    negocio.tipoNombre ||
+                    negocio.tipo ||
+                    "Negocio"}
+                </Text>
+
+                {negocio.descripcion ? (
+                  <Text style={styles.businessDescription} numberOfLines={2}>
+                    {negocio.descripcion}
+                  </Text>
+                ) : null}
+
+                {negocio.ubicacion?.ciudad ? (
+                  <View style={styles.locationRow}>
+                    <MaterialCommunityIcons
+                      name="map-marker-outline"
+                      size={16}
+                      color="#777"
+                    />
+
+                    <Text style={styles.locationText}>
+                      {negocio.ubicacion.ciudad}
+                      {negocio.ubicacion.provincia
+                        ? `, ${negocio.ubicacion.provincia}`
+                        : ""}
+                    </Text>
+                  </View>
+                ) : null}
+
+                <View style={styles.statusRow}>
+                  <View
+                    style={[
+                      styles.statusDot,
+                      negocio.estado === "activo"
+                        ? styles.statusActive
+                        : styles.statusInactive,
+                    ]}
+                  />
+
+                  <Text style={styles.statusText}>
+                    {negocio.estado === "activo"
+                      ? "Activo"
+                      : negocio.estado || "Sin estado"}
+                  </Text>
+                </View>
+              </View>
+
+              {/* FLECHA */}
+
+              <MaterialCommunityIcons
+                name="chevron-right"
+                size={28}
+                color="#999"
+              />
+            </Pressable>
+          ))}
         </View>
       )}
 
-      {/* INFORMACIÓN */}
-      <View style={styles.content}>
-        <Text style={styles.name}>{nombre}</Text>
+      {/* ================= INFORMACIÓN ================= */}
 
-        <Text style={styles.category}>{categoria}</Text>
+      <View style={styles.infoBox}>
+        <MaterialCommunityIcons
+          name="information-outline"
+          size={23}
+          color="#0066CC"
+        />
 
-        <Text style={styles.description}>{descripcion}</Text>
-
-        {/* DATOS DEL NEGOCIO */}
-        <View style={styles.infoBox}>
-          <View style={styles.infoRow}>
-            <MaterialCommunityIcons
-              name="map-marker"
-              size={22}
-              color="#0066CC"
-            />
-
-            <Text style={styles.infoText}>
-              {direccion}
-              {ciudad ? `, ${ciudad}` : ""}
-            </Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <MaterialCommunityIcons name="star" size={22} color="#F5A623" />
-
-            <Text style={styles.infoText}>Calificación: {calificacion}</Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <MaterialCommunityIcons
-              name="truck-delivery"
-              size={22}
-              color="#0066CC"
-            />
-
-            <Text style={styles.infoText}>
-              Costo de entrega: ${costoEntrega}
-            </Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <MaterialCommunityIcons
-              name="clock-outline"
-              size={22}
-              color="#0066CC"
-            />
-
-            <Text style={styles.infoText}>
-              Tiempo estimado: {tiempoEntrega} min
-            </Text>
-          </View>
-        </View>
-
-        {/* PRODUCTOS Y SERVICIOS */}
-        <Text style={styles.sectionTitle}>Productos y servicios</Text>
-
-        <View style={styles.emptyBox}>
-          <MaterialCommunityIcons name="food-outline" size={42} color="#999" />
-
-          <Text style={styles.emptyTitle}>Próximamente</Text>
-
-          <Text style={styles.emptyText}>
-            Aquí mostraremos los productos y servicios de este negocio.
-          </Text>
-        </View>
+        <Text style={styles.infoText}>
+          En FrancisCorp puedes crear diferentes tipos de negocios y ofrecer
+          cualquier producto o servicio permitido dentro de la plataforma.
+        </Text>
       </View>
     </ScrollView>
   );
@@ -117,108 +291,269 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
 
-  backButton: {
+  contentContainer: {
+    paddingBottom: 40,
+  },
+
+  /* ================= HEADER ================= */
+
+  header: {
+    paddingTop: 55,
+    paddingHorizontal: 20,
+    paddingBottom: 18,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingTop: 18,
-    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
   },
 
-  backText: {
-    marginLeft: 8,
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#222",
-  },
-
-  cover: {
-    width: "100%",
-    height: 220,
-    backgroundColor: "#F4F8FF",
-  },
-
-  coverPlaceholder: {
-    width: "100%",
-    height: 220,
+  backButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     backgroundColor: "#F4F8FF",
     justifyContent: "center",
     alignItems: "center",
+    marginRight: 12,
   },
 
-  content: {
-    padding: 20,
+  headerText: {
+    flex: 1,
   },
 
-  name: {
-    fontSize: 28,
+  title: {
+    fontSize: 27,
     fontWeight: "700",
     color: "#222",
   },
 
-  category: {
-    marginTop: 5,
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#0066CC",
-    textTransform: "capitalize",
+  subtitle: {
+    marginTop: 3,
+    fontSize: 14,
+    color: "#777",
   },
 
-  description: {
-    marginTop: 14,
-    fontSize: 16,
-    lineHeight: 23,
-    color: "#666",
-  },
+  /* ================= WELCOME ================= */
 
-  infoBox: {
-    marginTop: 20,
-    padding: 16,
-    backgroundColor: "#F7F9FC",
-    borderRadius: 16,
-  },
-
-  infoRow: {
-    flexDirection: "row",
+  welcomeBox: {
+    margin: 20,
+    padding: 24,
+    borderRadius: 20,
+    backgroundColor: "#F4F8FF",
     alignItems: "center",
-    marginBottom: 14,
   },
 
-  infoText: {
-    flex: 1,
-    marginLeft: 10,
+  iconCircle: {
+    width: 78,
+    height: 78,
+    borderRadius: 39,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 15,
+  },
+
+  welcomeTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#222",
+    textAlign: "center",
+  },
+
+  welcomeText: {
+    marginTop: 10,
     fontSize: 15,
-    color: "#444",
+    lineHeight: 22,
+    color: "#666",
+    textAlign: "center",
+  },
+
+  /* ================= CREATE ================= */
+
+  createButton: {
+    marginHorizontal: 20,
+    minHeight: 54,
+    borderRadius: 14,
+    backgroundColor: "#0066CC",
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  createButtonText: {
+    marginLeft: 9,
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#fff",
+  },
+
+  /* ================= SECTION ================= */
+
+  sectionHeader: {
+    paddingHorizontal: 20,
+    marginTop: 30,
+    marginBottom: 12,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
 
   sectionTitle: {
-    marginTop: 28,
-    marginBottom: 14,
     fontSize: 21,
     fontWeight: "700",
     color: "#222",
   },
 
-  emptyBox: {
-    padding: 25,
+  countText: {
+    fontSize: 14,
+    color: "#0066CC",
+    fontWeight: "600",
+  },
+
+  /* ================= BUSINESS LIST ================= */
+
+  businessList: {
+    marginHorizontal: 20,
+  },
+
+  businessCard: {
+    backgroundColor: "#fff",
+    borderRadius: 18,
+    padding: 15,
+    marginBottom: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#eee",
+
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 5,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+
+    elevation: 2,
+  },
+
+  businessIcon: {
+    width: 62,
+    height: 62,
     borderRadius: 16,
+    backgroundColor: "#F4F8FF",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  businessInfo: {
+    flex: 1,
+    marginLeft: 13,
+    marginRight: 8,
+  },
+
+  businessName: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#222",
+  },
+
+  businessCategory: {
+    marginTop: 3,
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#0066CC",
+  },
+
+  businessDescription: {
+    marginTop: 6,
+    fontSize: 13,
+    lineHeight: 18,
+    color: "#666",
+  },
+
+  locationRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 7,
+  },
+
+  locationText: {
+    marginLeft: 4,
+    fontSize: 12,
+    color: "#777",
+  },
+
+  statusRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 7,
+  },
+
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 6,
+  },
+
+  statusActive: {
+    backgroundColor: "#22C55E",
+  },
+
+  statusInactive: {
+    backgroundColor: "#999",
+  },
+
+  statusText: {
+    fontSize: 12,
+    color: "#666",
+    fontWeight: "600",
+  },
+
+  /* ================= EMPTY ================= */
+
+  emptyBox: {
+    marginHorizontal: 20,
+    padding: 28,
+    borderRadius: 18,
     backgroundColor: "#F7F7F7",
     alignItems: "center",
-    marginBottom: 30,
   },
 
   emptyTitle: {
-    marginTop: 10,
+    marginTop: 12,
     fontSize: 18,
     fontWeight: "700",
     color: "#555",
+    textAlign: "center",
   },
 
   emptyText: {
-    marginTop: 6,
-    textAlign: "center",
+    marginTop: 7,
     fontSize: 14,
     lineHeight: 20,
     color: "#888",
+    textAlign: "center",
+  },
+
+  /* ================= INFO ================= */
+
+  infoBox: {
+    marginHorizontal: 20,
+    marginTop: 22,
+    padding: 16,
+    borderRadius: 15,
+    backgroundColor: "#F4F8FF",
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
+
+  infoText: {
+    flex: 1,
+    marginLeft: 10,
+    fontSize: 14,
+    lineHeight: 20,
+    color: "#555",
   },
 });
