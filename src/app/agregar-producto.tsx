@@ -29,6 +29,36 @@ import {
 
 import { db, storage } from "../services/firebase";
 
+/*
+ * Convierte una URI local de Expo/React Native
+ * en un Blob compatible con Firebase Storage.
+ */
+const uriToBlob = (uri: string): Promise<Blob> => {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+
+    xhr.onload = () => {
+      if (xhr.response) {
+        resolve(xhr.response);
+      } else {
+        reject(
+          new Error("No se pudo convertir la imagen en Blob.")
+        );
+      }
+    };
+
+    xhr.onerror = () => {
+      reject(
+        new Error("No se pudo leer la imagen seleccionada.")
+      );
+    };
+
+    xhr.responseType = "blob";
+    xhr.open("GET", uri, true);
+    xhr.send(null);
+  });
+};
+
 export default function AgregarProductoScreen() {
   const params = useLocalSearchParams<{ id?: string }>();
 
@@ -56,20 +86,25 @@ export default function AgregarProductoScreen() {
       }
 
       try {
-        const referencia = doc(db, "negocios", negocioId);
+        const referencia = doc(
+          db,
+          "negocios",
+          negocioId
+        );
+
         const documento = await getDoc(referencia);
 
         if (documento.exists()) {
           const datos = documento.data();
 
           setNombreNegocio(
-            String(datos.nombre || "Mi negocio"),
+            String(datos.nombre || "Mi negocio")
           );
         }
       } catch (error) {
         console.error(
           "ERROR CARGANDO NEGOCIO:",
-          error,
+          error
         );
       } finally {
         setCargandoNegocio(false);
@@ -87,7 +122,7 @@ export default function AgregarProductoScreen() {
       if (!permiso.granted) {
         Alert.alert(
           "Permiso requerido",
-          "Necesitamos acceso a tus fotografías para seleccionar la imagen del producto.",
+          "Necesitamos acceso a tus fotografías para seleccionar la imagen del producto."
         );
 
         return;
@@ -113,12 +148,12 @@ export default function AgregarProductoScreen() {
     } catch (error) {
       console.error(
         "ERROR SELECCIONANDO FOTO:",
-        error,
+        error
       );
 
       Alert.alert(
         "Error",
-        "No pudimos seleccionar la fotografía.",
+        "No pudimos seleccionar la fotografía."
       );
     }
   };
@@ -131,7 +166,7 @@ export default function AgregarProductoScreen() {
       if (!permiso.granted) {
         Alert.alert(
           "Permiso requerido",
-          "Necesitamos acceso a la cámara para tomar una fotografía.",
+          "Necesitamos acceso a la cámara para tomar una fotografía."
         );
 
         return;
@@ -156,12 +191,12 @@ export default function AgregarProductoScreen() {
     } catch (error) {
       console.error(
         "ERROR TOMANDO FOTO:",
-        error,
+        error
       );
 
       Alert.alert(
         "Error",
-        "No pudimos tomar la fotografía.",
+        "No pudimos tomar la fotografía."
       );
     }
   };
@@ -183,7 +218,7 @@ export default function AgregarProductoScreen() {
           text: "Cancelar",
           style: "cancel",
         },
-      ],
+      ]
     );
   };
 
@@ -191,7 +226,7 @@ export default function AgregarProductoScreen() {
     if (!negocioId) {
       Alert.alert(
         "Error",
-        "No se identificó el negocio.",
+        "No se identificó el negocio."
       );
 
       return false;
@@ -200,7 +235,7 @@ export default function AgregarProductoScreen() {
     if (!nombre.trim()) {
       Alert.alert(
         "Falta el nombre",
-        "Ingresa el nombre del producto.",
+        "Ingresa el nombre del producto."
       );
 
       return false;
@@ -209,14 +244,14 @@ export default function AgregarProductoScreen() {
     if (!precio.trim()) {
       Alert.alert(
         "Falta el precio",
-        "Ingresa el precio del producto.",
+        "Ingresa el precio del producto."
       );
 
       return false;
     }
 
     const precioNumerico = Number(
-      precio.replace(",", "."),
+      precio.replace(",", ".")
     );
 
     if (
@@ -225,7 +260,7 @@ export default function AgregarProductoScreen() {
     ) {
       Alert.alert(
         "Precio inválido",
-        "Ingresa un precio válido.",
+        "Ingresa un precio válido."
       );
 
       return false;
@@ -244,7 +279,7 @@ export default function AgregarProductoScreen() {
 
       console.log(
         "GUARDANDO PRODUCTO PARA NEGOCIO:",
-        negocioId,
+        negocioId
       );
 
       let fotoURL = "";
@@ -256,19 +291,47 @@ export default function AgregarProductoScreen() {
        */
 
       if (fotoUri) {
-        console.log("SUBIENDO FOTO DEL PRODUCTO...");
+        console.log(
+          "SUBIENDO FOTO DEL PRODUCTO..."
+        );
 
-        const respuesta = await fetch(fotoUri);
-        const blob = await respuesta.blob();
+        console.log(
+          "URI DE FOTO:",
+          fotoUri
+        );
+
+        /*
+         * No usamos fetch(uri).blob()
+         * porque provoca en React Native:
+         *
+         * Creating blobs from 'ArrayBuffer'
+         * and 'ArrayBufferView' are not supported
+         */
+
+        const blob = await uriToBlob(
+          fotoUri
+        );
+
+        console.log(
+          "BLOB DE FOTO CREADO CORRECTAMENTE"
+        );
 
         const nombreArchivo =
           `${Date.now()}-${Math.random()
             .toString(36)
             .substring(2, 10)}.jpg`;
 
+        const rutaStorage =
+          `negocios/${negocioId}/productos/${nombreArchivo}`;
+
+        console.log(
+          "RUTA STORAGE:",
+          rutaStorage
+        );
+
         const referenciaFoto = ref(
           storage,
-          `negocios/${negocioId}/productos/${nombreArchivo}`,
+          rutaStorage
         );
 
         await uploadBytes(
@@ -276,17 +339,21 @@ export default function AgregarProductoScreen() {
           blob,
           {
             contentType: "image/jpeg",
-          },
+          }
+        );
+
+        console.log(
+          "FOTO SUBIDA CORRECTAMENTE"
         );
 
         fotoURL =
           await getDownloadURL(
-            referenciaFoto,
+            referenciaFoto
           );
 
         console.log(
-          "FOTO SUBIDA:",
-          fotoURL,
+          "URL DE FOTO:",
+          fotoURL
         );
       }
 
@@ -296,55 +363,65 @@ export default function AgregarProductoScreen() {
        * ==============================
        */
 
+      console.log(
+        "GUARDANDO PRODUCTO EN FIRESTORE..."
+      );
+
       const precioNumerico = Number(
-        precio.replace(",", "."),
+        precio.replace(",", ".")
       );
 
       const producto = {
         negocioId,
 
-        nombre: nombre.trim(),
+        nombre:
+          nombre.trim(),
 
         descripcion:
           descripcion.trim(),
 
-        precio: precioNumerico,
+        precio:
+          precioNumerico,
 
         categoria:
           categoria.trim() || "General",
 
-        foto: fotoURL,
+        foto:
+          fotoURL,
 
         disponible,
 
         destacado,
 
-        estado: disponible
-          ? "activo"
-          : "agotado",
+        estado:
+          disponible
+            ? "activo"
+            : "agotado",
 
-        creadoEn: serverTimestamp(),
+        creadoEn:
+          serverTimestamp(),
 
         actualizadoEn:
           serverTimestamp(),
       };
 
-      const productosRef = collection(
-        db,
-        "negocios",
-        negocioId,
-        "productos",
-      );
+      const productosRef =
+        collection(
+          db,
+          "negocios",
+          negocioId,
+          "productos"
+        );
 
       const referenciaProducto =
         await addDoc(
           productosRef,
-          producto,
+          producto
         );
 
       console.log(
         "PRODUCTO CREADO:",
-        referenciaProducto.id,
+        referenciaProducto.id
       );
 
       Alert.alert(
@@ -357,17 +434,35 @@ export default function AgregarProductoScreen() {
               router.back();
             },
           },
-        ],
+        ]
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error(
-        "ERROR GUARDANDO PRODUCTO:",
-        error,
+        "ERROR GUARDANDO PRODUCTO COMPLETO:",
+        error
+      );
+
+      console.error(
+        "CODIGO:",
+        error?.code
+      );
+
+      console.error(
+        "MENSAJE:",
+        error?.message
+      );
+
+      console.error(
+        "STACK:",
+        error?.stack
       );
 
       Alert.alert(
-        "Error",
-        "No pudimos guardar el producto. Revisa tu conexión e inténtalo nuevamente.",
+        "Error al guardar producto",
+        error?.code
+          ? `${error.code}\n\n${error.message || ""}`
+          : error?.message ||
+              "No pudimos guardar el producto."
       );
     } finally {
       setGuardando(false);
@@ -883,3 +978,4 @@ const styles = StyleSheet.create({
     height: 20,
   },
 });
+

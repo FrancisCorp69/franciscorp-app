@@ -1,10 +1,11 @@
-Ôªøimport { MaterialCommunityIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { collection, doc, getDoc, getDocs } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -46,7 +47,7 @@ export default function MenuNegocioScreen() {
       if (!negocioId) {
         Alert.alert(
           "Negocio no encontrado",
-          "No se recibi√≥ el identificador del negocio.",
+          "No se recibiÛ el identificador del negocio.",
         );
 
         router.back();
@@ -54,14 +55,23 @@ export default function MenuNegocioScreen() {
       }
 
       try {
-        console.log("CARGANDO MEN√ö DEL NEGOCIO:", negocioId);
+        console.log("CARGANDO MEN⁄ DEL NEGOCIO:", negocioId);
 
-        const referenciaNegocio = doc(db, "negocios", negocioId);
+        const referenciaNegocio = doc(
+          db,
+          "negocios",
+          negocioId,
+        );
 
-        const documentoNegocio = await getDoc(referenciaNegocio);
+        const documentoNegocio = await getDoc(
+          referenciaNegocio,
+        );
 
         if (!documentoNegocio.exists()) {
-          Alert.alert("Negocio no encontrado", "El negocio no existe.");
+          Alert.alert(
+            "Negocio no encontrado",
+            "El negocio no existe.",
+          );
 
           router.back();
           return;
@@ -74,22 +84,48 @@ export default function MenuNegocioScreen() {
 
         setNegocio(datosNegocio);
 
-        const productosRef = collection(db, "negocios", negocioId, "productos");
+        const productosRef = collection(
+          db,
+          "negocios",
+          negocioId,
+          "productos",
+        );
 
-        const productosSnapshot = await getDocs(productosRef);
+        const productosSnapshot = await getDocs(
+          productosRef,
+        );
 
-        const listaProductos = productosSnapshot.docs.map((documento) => ({
-          id: documento.id,
-          ...documento.data(),
-        })) as Producto[];
+        const listaProductos =
+          productosSnapshot.docs.map((documento) => ({
+            id: documento.id,
+            ...documento.data(),
+          })) as Producto[];
 
-        console.log("PRODUCTOS ENCONTRADOS:", listaProductos.length);
+        console.log(
+          "PRODUCTOS ENCONTRADOS:",
+          listaProductos.length,
+        );
+
+        console.log(
+          "FOTOS ENCONTRADAS:",
+          listaProductos.map((producto) => ({
+            id: producto.id,
+            nombre: producto.nombre,
+            foto: producto.foto || "SIN FOTO",
+          })),
+        );
 
         setProductos(listaProductos);
       } catch (error) {
-        console.error("ERROR CARGANDO MEN√ö:", error);
+        console.error(
+          "ERROR CARGANDO MEN⁄:",
+          error,
+        );
 
-        Alert.alert("Error", "No pudimos cargar el men√∫ del negocio.");
+        Alert.alert(
+          "Error",
+          "No pudimos cargar el men˙ del negocio.",
+        );
       } finally {
         setCargando(false);
       }
@@ -100,7 +136,11 @@ export default function MenuNegocioScreen() {
 
   const agregarProducto = () => {
     if (!negocioId) {
-      Alert.alert("Error", "No se identific√≥ el negocio.");
+      Alert.alert(
+        "Error",
+        "No se identificÛ el negocio.",
+      );
+
       return;
     }
 
@@ -112,17 +152,37 @@ export default function MenuNegocioScreen() {
     });
   };
 
+  const abrirProducto = (producto: Producto) => {
+    console.log(
+      "ABRIENDO PRODUCTO:",
+      producto.id,
+    );
+
+    console.log(
+      "FOTO DEL PRODUCTO:",
+      producto.foto || "SIN FOTO",
+    );
+
+    router.push({
+      pathname: "/producto",
+      params: {
+        negocioId,
+        productoId: producto.id,
+      },
+    });
+  };
+
   const editarProducto = (producto: Producto) => {
     Alert.alert(
       "Editar producto",
-      `Aqu√≠ podr√°s editar "${producto.nombre || "este producto"}".`,
+      `AquÌ podr·s editar "${producto.nombre || "este producto"}".`,
     );
   };
 
   const eliminarProducto = (producto: Producto) => {
     Alert.alert(
       "Eliminar producto",
-      `¬øQuieres eliminar "${producto.nombre || "este producto"}"?`,
+      `øQuieres eliminar "${producto.nombre || "este producto"}"?`,
       [
         {
           text: "Cancelar",
@@ -132,7 +192,10 @@ export default function MenuNegocioScreen() {
           text: "Eliminar",
           style: "destructive",
           onPress: () => {
-            console.log("PRODUCTO A ELIMINAR:", producto.id);
+            console.log(
+              "PRODUCTO A ELIMINAR:",
+              producto.id,
+            );
           },
         },
       ],
@@ -142,9 +205,14 @@ export default function MenuNegocioScreen() {
   if (cargando) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0066CC" />
+        <ActivityIndicator
+          size="large"
+          color="#0066CC"
+        />
 
-        <Text style={styles.loadingText}>Cargando men√∫...</Text>
+        <Text style={styles.loadingText}>
+          Cargando men˙...
+        </Text>
       </View>
     );
   }
@@ -152,24 +220,37 @@ export default function MenuNegocioScreen() {
   return (
     <ScrollView
       style={styles.container}
-      contentContainerStyle={styles.contentContainer}
+      contentContainerStyle={
+        styles.contentContainer
+      }
       showsVerticalScrollIndicator={false}
     >
       {/* ================= HEADER ================= */}
 
       <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
-          <MaterialCommunityIcons name="arrow-left" size={26} color="#222" />
+        <Pressable
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <MaterialCommunityIcons
+            name="arrow-left"
+            size={26}
+            color="#222"
+          />
         </Pressable>
 
         <View style={styles.headerText}>
-          <Text style={styles.title}>Men√∫ del negocio</Text>
+          <Text style={styles.title}>
+            Men˙ del negocio
+          </Text>
 
-          <Text style={styles.subtitle}>{negocio?.nombre || "Mi negocio"}</Text>
+          <Text style={styles.subtitle}>
+            {negocio?.nombre || "Mi negocio"}
+          </Text>
         </View>
       </View>
 
-      {/* ================= PRESENTACI√ìN ================= */}
+      {/* ================= PRESENTACI”N ================= */}
 
       <View style={styles.introBox}>
         <View style={styles.introIcon}>
@@ -181,34 +262,46 @@ export default function MenuNegocioScreen() {
         </View>
 
         <View style={styles.introContent}>
-          <Text style={styles.introTitle}>Productos y platos</Text>
+          <Text style={styles.introTitle}>
+            Productos y platos
+          </Text>
 
           <Text style={styles.introText}>
-            Administra lo que tus clientes podr√°n encontrar y comprar en tu
-            negocio.
+            Administra lo que tus clientes podr·n
+            encontrar y comprar en tu negocio.
           </Text>
         </View>
       </View>
 
       {/* ================= AGREGAR ================= */}
 
-      <Pressable style={styles.addButton} onPress={agregarProducto}>
+      <Pressable
+        style={styles.addButton}
+        onPress={agregarProducto}
+      >
         <MaterialCommunityIcons
           name="plus-circle-outline"
           size={25}
           color="#fff"
         />
 
-        <Text style={styles.addButtonText}>Agregar producto</Text>
+        <Text style={styles.addButtonText}>
+          Agregar producto
+        </Text>
       </Pressable>
 
-      {/* ================= T√çTULO ================= */}
+      {/* ================= TÕTULO ================= */}
 
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Mi men√∫</Text>
+        <Text style={styles.sectionTitle}>
+          Mi men˙
+        </Text>
 
         <Text style={styles.countText}>
-          {productos.length} {productos.length === 1 ? "producto" : "productos"}
+          {productos.length}{" "}
+          {productos.length === 1
+            ? "producto"
+            : "productos"}
         </Text>
       </View>
 
@@ -222,35 +315,76 @@ export default function MenuNegocioScreen() {
             color="#999"
           />
 
-          <Text style={styles.emptyTitle}>Todav√≠a no tienes productos</Text>
-
-          <Text style={styles.emptyText}>
-            Agrega tus platos, productos o servicios para comenzar a mostrar tu
-            oferta a los clientes.
+          <Text style={styles.emptyTitle}>
+            TodavÌa no tienes productos
           </Text>
 
-          <Pressable style={styles.emptyButton} onPress={agregarProducto}>
-            <MaterialCommunityIcons name="plus" size={20} color="#0066CC" />
+          <Text style={styles.emptyText}>
+            Agrega tus platos, productos o servicios
+            para comenzar a mostrar tu oferta a los
+            clientes.
+          </Text>
 
-            <Text style={styles.emptyButtonText}>Agregar el primero</Text>
+          <Pressable
+            style={styles.emptyButton}
+            onPress={agregarProducto}
+          >
+            <MaterialCommunityIcons
+              name="plus"
+              size={20}
+              color="#0066CC"
+            />
+
+            <Text style={styles.emptyButtonText}>
+              Agregar el primero
+            </Text>
           </Pressable>
         </View>
       ) : (
         <View style={styles.productList}>
           {productos.map((producto) => (
-            <View key={producto.id} style={styles.productCard}>
-              {/* IMAGEN */}
+            <Pressable
+              key={producto.id}
+              style={({ pressed }) => [
+                styles.productCard,
+                pressed && styles.productCardPressed,
+              ]}
+              onPress={() =>
+                abrirProducto(producto)
+              }
+            >
+              {/* ================= IMAGEN ================= */}
 
               <View style={styles.productImage}>
-                <MaterialCommunityIcons name="food" size={35} color="#0066CC" />
+                {producto.foto ? (
+                  <Image
+                    source={{
+                      uri: producto.foto,
+                    }}
+                    style={styles.productImageReal}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <MaterialCommunityIcons
+                    name="food"
+                    size={35}
+                    color="#0066CC"
+                  />
+                )}
               </View>
 
-              {/* INFORMACI√ìN */}
+              {/* ================= INFORMACI”N ================= */}
 
               <View style={styles.productInfo}>
-                <View style={styles.productTitleRow}>
-                  <Text style={styles.productName} numberOfLines={1}>
-                    {producto.nombre || "Producto sin nombre"}
+                <View
+                  style={styles.productTitleRow}
+                >
+                  <Text
+                    style={styles.productName}
+                    numberOfLines={1}
+                  >
+                    {producto.nombre ||
+                      "Producto sin nombre"}
                   </Text>
 
                   {producto.destacado ? (
@@ -263,20 +397,32 @@ export default function MenuNegocioScreen() {
                 </View>
 
                 {producto.categoria ? (
-                  <Text style={styles.productCategory}>
+                  <Text
+                    style={styles.productCategory}
+                  >
                     {producto.categoria}
                   </Text>
                 ) : null}
 
                 {producto.descripcion ? (
-                  <Text style={styles.productDescription} numberOfLines={2}>
+                  <Text
+                    style={
+                      styles.productDescription
+                    }
+                    numberOfLines={2}
+                  >
                     {producto.descripcion}
                   </Text>
                 ) : null}
 
-                <View style={styles.productBottom}>
+                <View
+                  style={styles.productBottom}
+                >
                   <Text style={styles.price}>
-                    ${Number(producto.precio || 0).toFixed(2)}
+                    $
+                    {Number(
+                      producto.precio || 0,
+                    ).toFixed(2)}
                   </Text>
 
                   <Text
@@ -287,16 +433,23 @@ export default function MenuNegocioScreen() {
                         : styles.available,
                     ]}
                   >
-                    {producto.disponible === false ? "Agotado" : "Disponible"}
+                    {producto.disponible === false
+                      ? "Agotado"
+                      : "Disponible"}
                   </Text>
                 </View>
 
-                {/* ACCIONES */}
+                {/* ================= ACCIONES ================= */}
 
                 <View style={styles.actions}>
                   <Pressable
                     style={styles.editButton}
-                    onPress={() => editarProducto(producto)}
+                    onPress={(event) => {
+                      event.stopPropagation();
+                      editarProducto(
+                        producto,
+                      );
+                    }}
                   >
                     <MaterialCommunityIcons
                       name="pencil-outline"
@@ -304,12 +457,23 @@ export default function MenuNegocioScreen() {
                       color="#0066CC"
                     />
 
-                    <Text style={styles.editButtonText}>Editar</Text>
+                    <Text
+                      style={
+                        styles.editButtonText
+                      }
+                    >
+                      Editar
+                    </Text>
                   </Pressable>
 
                   <Pressable
                     style={styles.deleteButton}
-                    onPress={() => eliminarProducto(producto)}
+                    onPress={(event) => {
+                      event.stopPropagation();
+                      eliminarProducto(
+                        producto,
+                      );
+                    }}
                   >
                     <MaterialCommunityIcons
                       name="trash-can-outline"
@@ -319,23 +483,34 @@ export default function MenuNegocioScreen() {
                   </Pressable>
                 </View>
               </View>
-            </View>
+
+              {/* INDICADOR DE APERTURA */}
+
+              <View style={styles.openIndicator}>
+                <MaterialCommunityIcons
+                  name="chevron-right"
+                  size={22}
+                  color="#999"
+                />
+              </View>
+            </Pressable>
           ))}
         </View>
       )}
 
-      {/* ================= INFORMACI√ìN ================= */}
+      {/* ================= INFORMACI”N ================= */}
 
       <View style={styles.infoBox}>
         <MaterialCommunityIcons
           name="information-outline"
-          size={23}
+          size={24}
           color="#0066CC"
         />
 
         <Text style={styles.infoText}>
-          Los productos se almacenar√°n dentro de tu negocio en Firebase.
-          Posteriormente podr√°s agregar fotograf√≠as, categor√≠as, precios,
+          Los productos se almacenan dentro de tu
+          negocio en Firebase. Puedes agregar
+          fotografÌas, categorÌas, precios,
           disponibilidad y promociones.
         </Text>
       </View>
@@ -346,7 +521,7 @@ export default function MenuNegocioScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#F7F8FA",
   },
 
   contentContainer: {
@@ -357,19 +532,19 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: "#F7F8FA",
   },
 
   loadingText: {
     marginTop: 12,
+    fontSize: 16,
     color: "#666",
-    fontSize: 15,
   },
 
   header: {
-    paddingTop: 55,
-    paddingHorizontal: 20,
-    paddingBottom: 18,
+    backgroundColor: "#fff",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     flexDirection: "row",
     alignItems: "center",
     borderBottomWidth: 1,
@@ -380,19 +555,18 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: "#F4F8FF",
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 12,
   },
 
   headerText: {
     flex: 1,
+    marginLeft: 8,
   },
 
   title: {
-    fontSize: 25,
-    fontWeight: "700",
+    fontSize: 21,
+    fontWeight: "800",
     color: "#222",
   },
 
@@ -403,18 +577,18 @@ const styles = StyleSheet.create({
   },
 
   introBox: {
-    margin: 20,
-    padding: 18,
+    margin: 16,
+    padding: 16,
+    backgroundColor: "#EEF5FF",
     borderRadius: 18,
-    backgroundColor: "#F4F8FF",
     flexDirection: "row",
     alignItems: "center",
   },
 
   introIcon: {
-    width: 62,
-    height: 62,
-    borderRadius: 16,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: "#fff",
     justifyContent: "center",
     alignItems: "center",
@@ -422,73 +596,71 @@ const styles = StyleSheet.create({
 
   introContent: {
     flex: 1,
-    marginLeft: 13,
+    marginLeft: 14,
   },
 
   introTitle: {
     fontSize: 18,
-    fontWeight: "700",
+    fontWeight: "800",
     color: "#222",
   },
 
   introText: {
     marginTop: 5,
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 14,
+    lineHeight: 20,
     color: "#666",
   },
 
   addButton: {
-    marginHorizontal: 20,
-    minHeight: 54,
-    borderRadius: 14,
+    marginHorizontal: 16,
     backgroundColor: "#0066CC",
+    minHeight: 52,
+    borderRadius: 14,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
   },
 
   addButtonText: {
-    marginLeft: 8,
     color: "#fff",
     fontSize: 16,
     fontWeight: "700",
+    marginLeft: 8,
   },
 
   sectionHeader: {
-    marginTop: 28,
-    marginBottom: 12,
-    marginHorizontal: 20,
+    marginTop: 24,
+    marginHorizontal: 16,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
 
   sectionTitle: {
-    fontSize: 21,
-    fontWeight: "700",
+    fontSize: 22,
+    fontWeight: "800",
     color: "#222",
   },
 
   countText: {
     fontSize: 14,
-    color: "#0066CC",
-    fontWeight: "600",
+    color: "#777",
   },
 
   emptyBox: {
-    marginHorizontal: 20,
+    margin: 16,
     padding: 30,
+    backgroundColor: "#fff",
     borderRadius: 18,
-    backgroundColor: "#F7F7F7",
     alignItems: "center",
   },
 
   emptyTitle: {
-    marginTop: 12,
+    marginTop: 15,
     fontSize: 19,
-    fontWeight: "700",
-    color: "#555",
+    fontWeight: "800",
+    color: "#222",
     textAlign: "center",
   },
 
@@ -496,20 +668,18 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 14,
     lineHeight: 21,
-    color: "#888",
+    color: "#666",
     textAlign: "center",
   },
 
   emptyButton: {
-    marginTop: 18,
-    paddingHorizontal: 18,
-    minHeight: 42,
-    borderRadius: 10,
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#0066CC",
+    marginTop: 20,
     flexDirection: "row",
     alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: "#EEF5FF",
   },
 
   emptyButtonText: {
@@ -519,18 +689,29 @@ const styles = StyleSheet.create({
   },
 
   productList: {
-    marginHorizontal: 20,
+    marginTop: 12,
+    paddingHorizontal: 16,
   },
 
   productCard: {
     backgroundColor: "#fff",
     borderRadius: 18,
-    padding: 13,
-    marginBottom: 14,
+    padding: 12,
+    marginBottom: 12,
     flexDirection: "row",
-    borderWidth: 1,
-    borderColor: "#eee",
     elevation: 2,
+    shadowColor: "#000",
+    shadowOpacity: 0.07,
+    shadowRadius: 6,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    position: "relative",
+  },
+
+  productCardPressed: {
+    opacity: 0.85,
   },
 
   productImage: {
@@ -540,11 +721,19 @@ const styles = StyleSheet.create({
     backgroundColor: "#F4F8FF",
     justifyContent: "center",
     alignItems: "center",
+    overflow: "hidden",
+  },
+
+  productImageReal: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 14,
   },
 
   productInfo: {
     flex: 1,
     marginLeft: 12,
+    paddingRight: 22,
   },
 
   productTitleRow: {
@@ -555,15 +744,15 @@ const styles = StyleSheet.create({
   productName: {
     flex: 1,
     fontSize: 17,
-    fontWeight: "700",
+    fontWeight: "800",
     color: "#222",
   },
 
   productCategory: {
-    marginTop: 3,
-    fontSize: 12,
-    fontWeight: "600",
+    marginTop: 4,
+    fontSize: 13,
     color: "#0066CC",
+    fontWeight: "600",
   },
 
   productDescription: {
@@ -574,25 +763,25 @@ const styles = StyleSheet.create({
   },
 
   productBottom: {
-    marginTop: 7,
+    marginTop: 8,
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
   },
 
   price: {
-    fontSize: 17,
-    fontWeight: "700",
-    color: "#222",
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#0066CC",
   },
 
   availability: {
-    marginLeft: 10,
     fontSize: 12,
-    fontWeight: "600",
+    fontWeight: "700",
   },
 
   available: {
-    color: "#22C55E",
+    color: "#2E7D32",
   },
 
   unavailable: {
@@ -600,18 +789,18 @@ const styles = StyleSheet.create({
   },
 
   actions: {
-    marginTop: 9,
+    marginTop: 10,
     flexDirection: "row",
     alignItems: "center",
   },
 
   editButton: {
-    minHeight: 34,
-    paddingHorizontal: 10,
-    borderRadius: 8,
-    backgroundColor: "#F4F8FF",
     flexDirection: "row",
     alignItems: "center",
+    paddingVertical: 6,
+    paddingHorizontal: 9,
+    backgroundColor: "#EEF5FF",
+    borderRadius: 9,
   },
 
   editButtonText: {
@@ -622,21 +811,28 @@ const styles = StyleSheet.create({
   },
 
   deleteButton: {
+    marginLeft: 8,
     width: 34,
     height: 34,
-    marginLeft: 8,
-    borderRadius: 8,
-    backgroundColor: "#FFF5F5",
+    borderRadius: 9,
+    backgroundColor: "#FFEBEE",
     justifyContent: "center",
     alignItems: "center",
   },
 
+  openIndicator: {
+    position: "absolute",
+    right: 8,
+    top: "50%",
+    marginTop: -11,
+  },
+
   infoBox: {
-    marginHorizontal: 20,
-    marginTop: 22,
+    marginHorizontal: 16,
+    marginTop: 15,
     padding: 16,
-    borderRadius: 15,
-    backgroundColor: "#F4F8FF",
+    borderRadius: 16,
+    backgroundColor: "#EEF5FF",
     flexDirection: "row",
     alignItems: "flex-start",
   },
@@ -646,6 +842,6 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     fontSize: 13,
     lineHeight: 19,
-    color: "#555",
+    color: "#666",
   },
 });

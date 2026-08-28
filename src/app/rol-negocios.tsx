@@ -1,4 +1,4 @@
-﻿import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { onAuthStateChanged } from "firebase/auth";
 import {
   collection,
@@ -81,7 +81,7 @@ export default function RolNegociosScreen() {
     console.log("ABRIENDO MI NEGOCIO:", negocio.id);
 
     router.push({
-      pathname: "/negocio",
+      pathname: "/administrar-negocio",
       params: {
         id: negocio.id,
         nombre: negocio.nombre || "",
