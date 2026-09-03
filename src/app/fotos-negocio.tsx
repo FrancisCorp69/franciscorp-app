@@ -1,0 +1,1419 @@
+﻿import { MaterialCommunityIcons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
+import { router, useLocalSearchParams } from "expo-router";
+import {
+  deleteObject,
+  getDownloadURL,
+  ref,
+  uploadBytes,
+} from "firebase/storage";
+import {
+  arrayUnion,
+  doc,
+  getDoc,
+  updateDoc,
+} from "firebase/firestore";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+
+import { db, storage } from "../services/firebase";
+
+interface FotoGaleria {
+  id: string;
+  url: string;
+  storagePath: string;
+}
+
+export default function FotosNegocioScreen() {
+  const params = useLocalSearchParams<{ id?: string }>();
+  const negocioId = String(params.id || "");
+
+  const [nombreNegocio, setNombreNegocio] = useState("Mi negocio");
+
+  const [logoUrl, setLogoUrl] = useState("");
+  const [portadaUrl, setPortadaUrl] = useState("");
+
+  const [galeria, setGaleria] = useState<FotoGaleria[]>([]);
+
+  const [cargando, setCargando] = useState(true);
+  const [subiendo, setSubiendo] = useState(false);
+
+  useEffect(() => {
+    cargarFotos();
+  }, [negocioId]);
+
+  async function cargarFotos() {
+    if (!negocioId) {
+      setCargando(false);
+
+      Alert.alert(
+        "Negocio no encontrado",
+        "No se recibió el identificador del negocio.",
+        [
+          {
+            text: "Volver",
+            onPress: () => router.back(),
+          },
+        ],
+      );
+
+      return;
+    }
+
+    try {
+      console.log(
+        "CARGANDO FOTOS DEL NEGOCIO:",
+        negocioId,
+      );
+
+      const referencia = doc(
+        db,
+        "negocios",
+        negocioId,
+      );
+
+      const documento = await getDoc(referencia);
+
+      if (!documento.exists()) {
+        Alert.alert(
+          "Negocio no encontrado",
+          "No encontramos este negocio.",
+          [
+            {
+              text: "Volver",
+              onPress: () => router.back(),
+            },
+          ],
+        );
+
+        return;
+      }
+
+      const datos = documento.data();
+
+      setNombreNegocio(
+        String(datos.nombre || "Mi negocio"),
+      );
+
+      setLogoUrl(
+        String(datos.logoUrl || ""),
+      );
+
+      setPortadaUrl(
+        String(datos.portadaUrl || ""),
+      );
+
+      const fotosGuardadas =
+        Array.isArray(datos.galeriaFotos)
+          ? datos.galeriaFotos
+          : [];
+
+      const galeriaConvertida: FotoGaleria[] =
+        fotosGuardadas
+          .map((foto: any, index: number) => {
+            if (typeof foto === "string") {
+              return {
+                id: `${index}-${foto}`,
+                url: foto,
+                storagePath: "",
+              };
+            }
+
+            return {
+              id:
+                String(
+                  foto.id ||
+                    `${index}-${foto.url}`,
+                ),
+              url: String(foto.url || ""),
+              storagePath: String(
+                foto.storagePath || "",
+              ),
+            };
+          })
+          .filter(
+            (foto: FotoGaleria) =>
+              foto.url.trim() !== "",
+          );
+
+      setGaleria(galeriaConvertida);
+
+      console.log(
+        "FOTOS CARGADAS:",
+        galeriaConvertida.length,
+      );
+    } catch (error) {
+      console.error(
+        "ERROR CARGANDO FOTOS:",
+        error,
+      );
+
+      Alert.alert(
+        "Error",
+        "No pudimos cargar las fotografías del negocio.",
+      );
+    } finally {
+      setCargando(false);
+    }
+  }
+
+  async function seleccionarImagen(
+    tipo: "logo" | "portada" | "galeria",
+  ) {
+    try {
+      const permiso =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (!permiso.granted) {
+        Alert.alert(
+          "Permiso requerido",
+          "Necesitamos acceso a tus fotografías para continuar.",
+        );
+
+        return;
+      }
+
+      const resultado =
+        await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ["images"],
+          allowsEditing: true,
+          aspect:
+            tipo === "portada"
+              ? [16, 9]
+              : [1, 1],
+          quality: 0.8,
+        });
+
+      if (resultado.canceled) {
+        return;
+      }
+
+      const uri =
+        resultado.assets[0]?.uri;
+
+      if (!uri) {
+        Alert.alert(
+          "Error",
+          "No se encontró la imagen seleccionada.",
+        );
+
+        return;
+      }
+
+      await subirImagen(uri, tipo);
+    } catch (error) {
+      console.error(
+        "ERROR SELECCIONANDO IMAGEN:",
+        error,
+      );
+
+      Alert.alert(
+        "Error",
+        "No pudimos seleccionar la imagen.",
+      );
+    }
+  }
+
+  async function subirImagen(
+    uri: string,
+    tipo: "logo" | "portada" | "galeria",
+  ) {
+    if (!negocioId) {
+      return;
+    }
+
+    try {
+      setSubiendo(true);
+
+      console.log(
+        "SUBIENDO IMAGEN:",
+        tipo,
+      );
+
+      const respuesta = await fetch(uri);
+      const blob = await respuesta.blob();
+
+      const nombreArchivo =
+        `${Date.now()}-${Math.random()
+          .toString(36)
+          .substring(2, 10)}.jpg`;
+
+      const carpeta =
+        tipo === "logo"
+          ? "logo"
+          : tipo === "portada"
+            ? "portada"
+            : "galeria";
+
+      const storagePath =
+        `negocios/${negocioId}/${carpeta}/${nombreArchivo}`;
+
+      const referenciaFoto =
+        ref(storage, storagePath);
+
+      await uploadBytes(
+        referenciaFoto,
+        blob,
+        {
+          contentType: "image/jpeg",
+        },
+      );
+
+      const url =
+        await getDownloadURL(
+          referenciaFoto,
+        );
+
+      const negocioRef =
+        doc(
+          db,
+          "negocios",
+          negocioId,
+        );
+
+      if (tipo === "logo") {
+        setLogoUrl(url);
+
+        await updateDoc(
+          negocioRef,
+          {
+            logoUrl: url,
+            logoStoragePath:
+              storagePath,
+          },
+        );
+      }
+
+      if (tipo === "portada") {
+        setPortadaUrl(url);
+
+        await updateDoc(
+          negocioRef,
+          {
+            portadaUrl: url,
+            portadaStoragePath:
+              storagePath,
+          },
+        );
+      }
+
+      if (tipo === "galeria") {
+        const nuevaFoto: FotoGaleria = {
+          id: `${Date.now()}-${Math.random()
+            .toString(36)
+            .substring(2, 8)}`,
+          url,
+          storagePath,
+        };
+
+        const nuevaGaleria = [
+          ...galeria,
+          nuevaFoto,
+        ];
+
+        setGaleria(nuevaGaleria);
+
+        await updateDoc(
+          negocioRef,
+          {
+            galeriaFotos:
+              nuevaGaleria,
+          },
+        );
+      }
+
+      console.log(
+        "IMAGEN GUARDADA CORRECTAMENTE:",
+        tipo,
+      );
+
+      Alert.alert(
+        "Imagen guardada",
+        tipo === "logo"
+          ? "El logo del negocio se actualizó correctamente."
+          : tipo === "portada"
+            ? "La portada del negocio se actualizó correctamente."
+            : "La fotografía se agregó correctamente a la galería.",
+      );
+    } catch (error: any) {
+      console.error(
+        "ERROR SUBIENDO IMAGEN:",
+        error,
+      );
+
+      Alert.alert(
+        "Error al subir",
+        error?.message ||
+          "No pudimos subir la imagen. Revisa tu conexión e inténtalo nuevamente.",
+      );
+    } finally {
+      setSubiendo(false);
+    }
+  }
+
+  async function eliminarImagen(
+    tipo: "logo" | "portada" | "galeria",
+    foto?: FotoGaleria,
+    indice?: number,
+  ) {
+    const confirmado =
+      await new Promise<boolean>(
+        (resolver) => {
+          Alert.alert(
+            "Eliminar fotografía",
+            "¿Seguro que quieres eliminar esta fotografía?",
+            [
+              {
+                text: "Cancelar",
+                style: "cancel",
+                onPress: () =>
+                  resolver(false),
+              },
+              {
+                text: "Eliminar",
+                style: "destructive",
+                onPress: () =>
+                  resolver(true),
+              },
+            ],
+          );
+        },
+      );
+
+    if (!confirmado) {
+      return;
+    }
+
+    try {
+      setSubiendo(true);
+
+      const negocioRef =
+        doc(
+          db,
+          "negocios",
+          negocioId,
+        );
+
+      if (tipo === "logo") {
+        const negocioActual =
+          await getDoc(negocioRef);
+
+        const datos =
+          negocioActual.data();
+
+        const storagePath =
+          datos?.logoStoragePath;
+
+        if (storagePath) {
+          try {
+            await deleteObject(
+              ref(storage, storagePath),
+            );
+          } catch (error) {
+            console.log(
+              "No se pudo eliminar el archivo del Storage:",
+              error,
+            );
+          }
+        }
+
+        await updateDoc(
+          negocioRef,
+          {
+            logoUrl: "",
+            logoStoragePath: "",
+          },
+        );
+
+        setLogoUrl("");
+      }
+
+      if (tipo === "portada") {
+        const negocioActual =
+          await getDoc(negocioRef);
+
+        const datos =
+          negocioActual.data();
+
+        const storagePath =
+          datos?.portadaStoragePath;
+
+        if (storagePath) {
+          try {
+            await deleteObject(
+              ref(storage, storagePath),
+            );
+          } catch (error) {
+            console.log(
+              "No se pudo eliminar el archivo del Storage:",
+              error,
+            );
+          }
+        }
+
+        await updateDoc(
+          negocioRef,
+          {
+            portadaUrl: "",
+            portadaStoragePath: "",
+          },
+        );
+
+        setPortadaUrl("");
+      }
+
+      if (
+        tipo === "galeria" &&
+        foto &&
+        typeof indice === "number"
+      ) {
+        if (foto.storagePath) {
+          try {
+            await deleteObject(
+              ref(
+                storage,
+                foto.storagePath,
+              ),
+            );
+          } catch (error) {
+            console.log(
+              "No se pudo eliminar el archivo del Storage:",
+              error,
+            );
+          }
+        }
+
+        const nuevaGaleria =
+          galeria.filter(
+            (_, i) => i !== indice,
+          );
+
+        setGaleria(nuevaGaleria);
+
+        await updateDoc(
+          negocioRef,
+          {
+            galeriaFotos:
+              nuevaGaleria,
+          },
+        );
+      }
+
+      Alert.alert(
+        "Eliminado",
+        "La fotografía se eliminó correctamente.",
+      );
+    } catch (error) {
+      console.error(
+        "ERROR ELIMINANDO IMAGEN:",
+        error,
+      );
+
+      Alert.alert(
+        "Error",
+        "No pudimos eliminar la fotografía.",
+      );
+    } finally {
+      setSubiendo(false);
+    }
+  }
+
+  async function moverGaleria(
+    indice: number,
+    direccion: "izquierda" | "derecha",
+  ) {
+    const nuevoIndice =
+      direccion === "izquierda"
+        ? indice - 1
+        : indice + 1;
+
+    if (
+      nuevoIndice < 0 ||
+      nuevoIndice >= galeria.length
+    ) {
+      return;
+    }
+
+    const nuevaGaleria =
+      [...galeria];
+
+    const temporal =
+      nuevaGaleria[indice];
+
+    nuevaGaleria[indice] =
+      nuevaGaleria[nuevoIndice];
+
+    nuevaGaleria[nuevoIndice] =
+      temporal;
+
+    setGaleria(nuevaGaleria);
+
+    try {
+      await updateDoc(
+        doc(
+          db,
+          "negocios",
+          negocioId,
+        ),
+        {
+          galeriaFotos:
+            nuevaGaleria,
+        },
+      );
+
+      console.log(
+        "ORDEN DE GALERIA ACTUALIZADO",
+      );
+    } catch (error) {
+      console.error(
+        "ERROR REORDENANDO GALERIA:",
+        error,
+      );
+
+      Alert.alert(
+        "Error",
+        "No pudimos guardar el nuevo orden.",
+      );
+
+      await cargarFotos();
+    }
+  }
+
+  function vistaPrevia() {
+    router.push({
+      pathname: "/vista-negocio",
+      params: {
+        id: negocioId,
+      },
+    });
+  }
+
+  if (cargando) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator
+          size="large"
+          color="#0066CC"
+        />
+
+        <Text style={styles.loadingText}>
+          Cargando fotografías...
+        </Text>
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={
+        styles.contentContainer
+      }
+      showsVerticalScrollIndicator={false}
+    >
+      <View style={styles.header}>
+        <Pressable
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <MaterialCommunityIcons
+            name="arrow-left"
+            size={26}
+            color="#222"
+          />
+        </Pressable>
+
+        <View style={styles.headerText}>
+          <Text style={styles.title}>
+            Fotos del negocio
+          </Text>
+
+          <Text style={styles.subtitle}>
+            {nombreNegocio}
+          </Text>
+        </View>
+      </View>
+
+      {subiendo ? (
+        <View style={styles.uploadingBox}>
+          <ActivityIndicator
+            size="small"
+            color="#0066CC"
+          />
+
+          <Text style={styles.uploadingText}>
+            Procesando imagen...
+          </Text>
+        </View>
+      ) : null}
+
+      <Text style={styles.sectionTitle}>
+        Identidad del negocio
+      </Text>
+
+      <Text style={styles.sectionDescription}>
+        Estas imágenes representan visualmente tu
+        negocio para los clientes.
+      </Text>
+
+      <View style={styles.photoSection}>
+        <Text style={styles.photoTitle}>
+          Logo del negocio
+        </Text>
+
+        <Text style={styles.photoDescription}>
+          Se utilizará como imagen principal del negocio.
+        </Text>
+
+        <View style={styles.logoRow}>
+          <View style={styles.logoPreview}>
+            {logoUrl ? (
+              <Image
+                source={{ uri: logoUrl }}
+                style={styles.logoImage}
+              />
+            ) : (
+              <MaterialCommunityIcons
+                name="store-outline"
+                size={45}
+                color="#0066CC"
+              />
+            )}
+          </View>
+
+          <View style={styles.logoActions}>
+            <Pressable
+              style={styles.primaryButton}
+              onPress={() =>
+                seleccionarImagen("logo")
+              }
+              disabled={subiendo}
+            >
+              <MaterialCommunityIcons
+                name="camera-plus-outline"
+                size={20}
+                color="#fff"
+              />
+
+              <Text style={styles.primaryButtonText}>
+                {logoUrl
+                  ? "Cambiar logo"
+                  : "Agregar logo"}
+              </Text>
+            </Pressable>
+
+            {logoUrl ? (
+              <Pressable
+                style={styles.deleteButton}
+                onPress={() =>
+                  eliminarImagen("logo")
+                }
+                disabled={subiendo}
+              >
+                <MaterialCommunityIcons
+                  name="trash-can-outline"
+                  size={19}
+                  color="#EF4444"
+                />
+
+                <Text style={styles.deleteButtonText}>
+                  Eliminar
+                </Text>
+              </Pressable>
+            ) : null}
+          </View>
+        </View>
+      </View>
+
+      <View style={styles.photoSection}>
+        <Text style={styles.photoTitle}>
+          Portada del negocio
+        </Text>
+
+        <Text style={styles.photoDescription}>
+          Imagen horizontal que aparecerá en la parte
+          superior del perfil del negocio.
+        </Text>
+
+        <View style={styles.coverPreview}>
+          {portadaUrl ? (
+            <Image
+              source={{ uri: portadaUrl }}
+              style={styles.coverImage}
+            />
+          ) : (
+            <View style={styles.emptyCover}>
+              <MaterialCommunityIcons
+                name="image-outline"
+                size={42}
+                color="#0066CC"
+              />
+
+              <Text style={styles.emptyCoverText}>
+                No has agregado una portada
+              </Text>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.buttonRow}>
+          <Pressable
+            style={styles.primaryButton}
+            onPress={() =>
+              seleccionarImagen("portada")
+            }
+            disabled={subiendo}
+          >
+            <MaterialCommunityIcons
+              name="image-edit-outline"
+              size={20}
+              color="#fff"
+            />
+
+            <Text style={styles.primaryButtonText}>
+              {portadaUrl
+                ? "Cambiar portada"
+                : "Agregar portada"}
+            </Text>
+          </Pressable>
+
+          {portadaUrl ? (
+            <Pressable
+              style={styles.deleteButton}
+              onPress={() =>
+                eliminarImagen("portada")
+              }
+              disabled={subiendo}
+            >
+              <MaterialCommunityIcons
+                name="trash-can-outline"
+                size={19}
+                color="#EF4444"
+              />
+
+              <Text style={styles.deleteButtonText}>
+                Eliminar
+              </Text>
+            </Pressable>
+          ) : null}
+        </View>
+      </View>
+
+      <View style={styles.galleryHeader}>
+        <View style={styles.galleryHeaderText}>
+          <Text style={styles.sectionTitle}>
+            Galería
+          </Text>
+
+          <Text style={styles.sectionDescription}>
+            Agrega fotografías del local, ambiente y
+            productos de tu menú.
+          </Text>
+        </View>
+
+        <View style={styles.counter}>
+          <Text style={styles.counterText}>
+            {galeria.length}
+          </Text>
+        </View>
+      </View>
+
+      <Pressable
+        style={styles.addGalleryButton}
+        onPress={() =>
+          seleccionarImagen("galeria")
+        }
+        disabled={subiendo}
+      >
+        <MaterialCommunityIcons
+          name="plus-circle-outline"
+          size={24}
+          color="#0066CC"
+        />
+
+        <View style={styles.addGalleryInfo}>
+          <Text style={styles.addGalleryTitle}>
+            Agregar fotografía
+          </Text>
+
+          <Text style={styles.addGalleryText}>
+            Selecciona una imagen desde tu galería.
+          </Text>
+        </View>
+
+        <MaterialCommunityIcons
+          name="chevron-right"
+          size={24}
+          color="#999"
+        />
+      </Pressable>
+
+      {galeria.length === 0 ? (
+        <View style={styles.emptyGallery}>
+          <MaterialCommunityIcons
+            name="image-multiple-outline"
+            size={55}
+            color="#B8C7D9"
+          />
+
+          <Text style={styles.emptyGalleryTitle}>
+            Tu galería está vacía
+          </Text>
+
+          <Text style={styles.emptyGalleryText}>
+            Agrega fotografías para mostrar a tus clientes
+            cómo es tu negocio y qué productos ofreces.
+          </Text>
+        </View>
+      ) : (
+        <View style={styles.galleryGrid}>
+          {galeria.map((foto, indice) => (
+            <View
+              key={foto.id}
+              style={styles.galleryItem}
+            >
+              <Image
+                source={{ uri: foto.url }}
+                style={styles.galleryImage}
+              />
+
+              <View style={styles.galleryControls}>
+                <Pressable
+                  style={styles.controlButton}
+                  onPress={() =>
+                    moverGaleria(
+                      indice,
+                      "izquierda",
+                    )
+                  }
+                  disabled={
+                    indice === 0 ||
+                    subiendo
+                  }
+                >
+                  <MaterialCommunityIcons
+                    name="chevron-left"
+                    size={22}
+                    color={
+                      indice === 0
+                        ? "#CCC"
+                        : "#222"
+                    }
+                  />
+                </Pressable>
+
+                <Pressable
+                  style={styles.controlButton}
+                  onPress={() =>
+                    moverGaleria(
+                      indice,
+                      "derecha",
+                    )
+                  }
+                  disabled={
+                    indice ===
+                      galeria.length - 1 ||
+                    subiendo
+                  }
+                >
+                  <MaterialCommunityIcons
+                    name="chevron-right"
+                    size={22}
+                    color={
+                      indice ===
+                      galeria.length - 1
+                        ? "#CCC"
+                        : "#222"
+                    }
+                  />
+                </Pressable>
+
+                <Pressable
+                  style={[
+                    styles.controlButton,
+                    styles.deleteControl,
+                  ]}
+                  onPress={() =>
+                    eliminarImagen(
+                      "galeria",
+                      foto,
+                      indice,
+                    )
+                  }
+                  disabled={subiendo}
+                >
+                  <MaterialCommunityIcons
+                    name="trash-can-outline"
+                    size={19}
+                    color="#EF4444"
+                  />
+                </Pressable>
+              </View>
+            </View>
+          ))}
+        </View>
+      )}
+
+      <View style={styles.previewBox}>
+        <View style={styles.previewIcon}>
+          <MaterialCommunityIcons
+            name="eye-outline"
+            size={25}
+            color="#0066CC"
+          />
+        </View>
+
+        <View style={styles.previewInfo}>
+          <Text style={styles.previewTitle}>
+            Vista del cliente
+          </Text>
+
+          <Text style={styles.previewText}>
+            Mira cómo aparece actualmente tu negocio
+            para los clientes de FrancisCorp.
+          </Text>
+        </View>
+
+        <Pressable
+          style={styles.previewButton}
+          onPress={vistaPrevia}
+        >
+          <Text style={styles.previewButtonText}>
+            Ver
+          </Text>
+        </Pressable>
+      </View>
+
+      <View style={styles.infoBox}>
+        <MaterialCommunityIcons
+          name="information-outline"
+          size={22}
+          color="#0066CC"
+        />
+
+        <Text style={styles.infoText}>
+          Las fotografías se guardan en Firebase Storage
+          y la información de cada imagen queda asociada
+          a este negocio.
+        </Text>
+      </View>
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+
+  contentContainer: {
+    paddingBottom: 50,
+  },
+
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 30,
+  },
+
+  loadingText: {
+    marginTop: 14,
+    color: "#666",
+    fontSize: 15,
+  },
+
+  header: {
+    paddingTop: 55,
+    paddingHorizontal: 20,
+    paddingBottom: 18,
+    flexDirection: "row",
+    alignItems: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+
+  backButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: "#F4F8FF",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+
+  headerText: {
+    flex: 1,
+  },
+
+  title: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#222",
+  },
+
+  subtitle: {
+    marginTop: 3,
+    fontSize: 13,
+    color: "#777",
+  },
+
+  uploadingBox: {
+    marginHorizontal: 20,
+    marginTop: 14,
+    padding: 13,
+    borderRadius: 12,
+    backgroundColor: "#F4F8FF",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  uploadingText: {
+    marginLeft: 9,
+    color: "#0066CC",
+    fontSize: 13,
+    fontWeight: "600",
+  },
+
+  sectionTitle: {
+    marginTop: 25,
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#222",
+  },
+
+  sectionDescription: {
+    marginTop: 5,
+    fontSize: 13,
+    lineHeight: 19,
+    color: "#777",
+  },
+
+  photoSection: {
+    marginHorizontal: 20,
+    marginTop: 16,
+    padding: 16,
+    borderRadius: 17,
+    backgroundColor: "#F9FAFC",
+    borderWidth: 1,
+    borderColor: "#E8E8E8",
+  },
+
+  photoTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#222",
+  },
+
+  photoDescription: {
+    marginTop: 4,
+    fontSize: 12,
+    lineHeight: 17,
+    color: "#777",
+  },
+
+  logoRow: {
+    marginTop: 15,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  logoPreview: {
+    width: 105,
+    height: 105,
+    borderRadius: 22,
+    backgroundColor: "#F4F8FF",
+    justifyContent: "center",
+    alignItems: "center",
+    overflow: "hidden",
+  },
+
+  logoImage: {
+    width: "100%",
+    height: "100%",
+  },
+
+  logoActions: {
+    flex: 1,
+    marginLeft: 14,
+  },
+
+  coverPreview: {
+    marginTop: 15,
+    width: "100%",
+    height: 180,
+    borderRadius: 15,
+    overflow: "hidden",
+    backgroundColor: "#F4F8FF",
+  },
+
+  coverImage: {
+    width: "100%",
+    height: "100%",
+  },
+
+  emptyCover: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  emptyCoverText: {
+    marginTop: 8,
+    color: "#777",
+    fontSize: 13,
+  },
+
+  buttonRow: {
+    marginTop: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+
+  primaryButton: {
+    minHeight: 43,
+    paddingHorizontal: 15,
+    borderRadius: 11,
+    backgroundColor: "#0066CC",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  primaryButtonText: {
+    marginLeft: 7,
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+
+  deleteButton: {
+    minHeight: 43,
+    paddingHorizontal: 13,
+    borderRadius: 11,
+    backgroundColor: "#FFF5F5",
+    borderWidth: 1,
+    borderColor: "#FFDADA",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  deleteButtonText: {
+    marginLeft: 6,
+    color: "#EF4444",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+
+  galleryHeader: {
+    marginHorizontal: 20,
+    marginTop: 8,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  galleryHeaderText: {
+    flex: 1,
+  },
+
+  counter: {
+    minWidth: 35,
+    height: 35,
+    paddingHorizontal: 8,
+    borderRadius: 18,
+    backgroundColor: "#F4F8FF",
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 10,
+  },
+
+  counterText: {
+    color: "#0066CC",
+    fontWeight: "700",
+  },
+
+  addGalleryButton: {
+    marginHorizontal: 20,
+    marginTop: 15,
+    minHeight: 70,
+    paddingHorizontal: 15,
+    borderRadius: 15,
+    backgroundColor: "#F8FBFF",
+    borderWidth: 1,
+    borderColor: "#CFE1F5",
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  addGalleryInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
+
+  addGalleryTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#222",
+  },
+
+  addGalleryText: {
+    marginTop: 3,
+    fontSize: 12,
+    color: "#777",
+  },
+
+  emptyGallery: {
+    marginHorizontal: 20,
+    marginTop: 16,
+    padding: 30,
+    borderRadius: 17,
+    backgroundColor: "#F9FAFC",
+    borderWidth: 1,
+    borderColor: "#E8E8E8",
+    alignItems: "center",
+  },
+
+  emptyGalleryTitle: {
+    marginTop: 12,
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#333",
+  },
+
+  emptyGalleryText: {
+    marginTop: 6,
+    fontSize: 13,
+    lineHeight: 19,
+    color: "#777",
+    textAlign: "center",
+  },
+
+  galleryGrid: {
+    marginHorizontal: 20,
+    marginTop: 16,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+
+  galleryItem: {
+    width: "48%",
+    borderRadius: 14,
+    overflow: "hidden",
+    backgroundColor: "#F4F4F4",
+    borderWidth: 1,
+    borderColor: "#E8E8E8",
+  },
+
+  galleryImage: {
+    width: "100%",
+    height: 150,
+  },
+
+  galleryControls: {
+    minHeight: 43,
+    paddingHorizontal: 5,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#fff",
+  },
+
+  controlButton: {
+    width: 35,
+    height: 35,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F7F9FC",
+  },
+
+  deleteControl: {
+    backgroundColor: "#FFF5F5",
+  },
+
+  previewBox: {
+    marginHorizontal: 20,
+    marginTop: 25,
+    padding: 15,
+    borderRadius: 16,
+    backgroundColor: "#F4F8FF",
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  previewIcon: {
+    width: 45,
+    height: 45,
+    borderRadius: 13,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  previewInfo: {
+    flex: 1,
+    marginLeft: 11,
+    marginRight: 8,
+  },
+
+  previewTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#222",
+  },
+
+  previewText: {
+    marginTop: 3,
+    fontSize: 11,
+    lineHeight: 16,
+    color: "#666",
+  },
+
+  previewButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: "#0066CC",
+  },
+
+  previewButtonText: {
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+
+  infoBox: {
+    marginHorizontal: 20,
+    marginTop: 18,
+    padding: 15,
+    borderRadius: 15,
+    backgroundColor: "#F8FBFF",
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
+
+  infoText: {
+    flex: 1,
+    marginLeft: 9,
+    fontSize: 12,
+    lineHeight: 18,
+    color: "#555",
+  },
+});
+

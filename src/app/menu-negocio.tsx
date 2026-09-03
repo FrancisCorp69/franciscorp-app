@@ -1,4 +1,4 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+Ôªøimport { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { collection, doc, getDoc, getDocs } from "firebase/firestore";
 import { useEffect, useState } from "react";
@@ -47,7 +47,7 @@ export default function MenuNegocioScreen() {
       if (!negocioId) {
         Alert.alert(
           "Negocio no encontrado",
-          "No se recibiÛ el identificador del negocio.",
+          "No se recibi√≥ el identificador del negocio.",
         );
 
         router.back();
@@ -55,7 +55,7 @@ export default function MenuNegocioScreen() {
       }
 
       try {
-        console.log("CARGANDO MEN⁄ DEL NEGOCIO:", negocioId);
+        console.log("CARGANDO MEN√ö DEL NEGOCIO:", negocioId);
 
         const referenciaNegocio = doc(
           db,
@@ -118,13 +118,13 @@ export default function MenuNegocioScreen() {
         setProductos(listaProductos);
       } catch (error) {
         console.error(
-          "ERROR CARGANDO MEN⁄:",
+          "ERROR CARGANDO MEN√ö:",
           error,
         );
 
         Alert.alert(
           "Error",
-          "No pudimos cargar el men˙ del negocio.",
+          "No pudimos cargar el men√∫ del negocio.",
         );
       } finally {
         setCargando(false);
@@ -138,7 +138,7 @@ export default function MenuNegocioScreen() {
     if (!negocioId) {
       Alert.alert(
         "Error",
-        "No se identificÛ el negocio.",
+        "No se identific√≥ el negocio.",
       );
 
       return;
@@ -173,16 +173,28 @@ export default function MenuNegocioScreen() {
   };
 
   const editarProducto = (producto: Producto) => {
-    Alert.alert(
-      "Editar producto",
-      `AquÌ podr·s editar "${producto.nombre || "este producto"}".`,
-    );
+    if (!negocioId || !producto.id) {
+      Alert.alert(
+        "Error",
+        "No se pudo identificar el producto.",
+      );
+
+      return;
+    }
+
+    router.push({
+      pathname: "/editar-producto",
+      params: {
+        negocioId,
+        productoId: producto.id,
+      },
+    });
   };
 
   const eliminarProducto = (producto: Producto) => {
     Alert.alert(
       "Eliminar producto",
-      `øQuieres eliminar "${producto.nombre || "este producto"}"?`,
+      `¬øQuieres eliminar "${producto.nombre || "este producto"}"?`,
       [
         {
           text: "Cancelar",
@@ -211,7 +223,7 @@ export default function MenuNegocioScreen() {
         />
 
         <Text style={styles.loadingText}>
-          Cargando men˙...
+          Cargando men√∫...
         </Text>
       </View>
     );
@@ -241,7 +253,7 @@ export default function MenuNegocioScreen() {
 
         <View style={styles.headerText}>
           <Text style={styles.title}>
-            Men˙ del negocio
+            Men√∫ del negocio
           </Text>
 
           <Text style={styles.subtitle}>
@@ -250,7 +262,7 @@ export default function MenuNegocioScreen() {
         </View>
       </View>
 
-      {/* ================= PRESENTACI”N ================= */}
+      {/* ================= PRESENTACI√ìN ================= */}
 
       <View style={styles.introBox}>
         <View style={styles.introIcon}>
@@ -267,7 +279,7 @@ export default function MenuNegocioScreen() {
           </Text>
 
           <Text style={styles.introText}>
-            Administra lo que tus clientes podr·n
+            Administra lo que tus clientes podr√°n
             encontrar y comprar en tu negocio.
           </Text>
         </View>
@@ -290,11 +302,11 @@ export default function MenuNegocioScreen() {
         </Text>
       </Pressable>
 
-      {/* ================= TÕTULO ================= */}
+      {/* ================= T√çTULO ================= */}
 
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>
-          Mi men˙
+          Mi men√∫
         </Text>
 
         <Text style={styles.countText}>
@@ -316,7 +328,7 @@ export default function MenuNegocioScreen() {
           />
 
           <Text style={styles.emptyTitle}>
-            TodavÌa no tienes productos
+            Todav√≠a no tienes productos
           </Text>
 
           <Text style={styles.emptyText}>
@@ -373,7 +385,7 @@ export default function MenuNegocioScreen() {
                 )}
               </View>
 
-              {/* ================= INFORMACI”N ================= */}
+              {/* ================= INFORMACI√ìN ================= */}
 
               <View style={styles.productInfo}>
                 <View
@@ -498,7 +510,7 @@ export default function MenuNegocioScreen() {
         </View>
       )}
 
-      {/* ================= INFORMACI”N ================= */}
+      {/* ================= INFORMACI√ìN ================= */}
 
       <View style={styles.infoBox}>
         <MaterialCommunityIcons
@@ -510,7 +522,7 @@ export default function MenuNegocioScreen() {
         <Text style={styles.infoText}>
           Los productos se almacenan dentro de tu
           negocio en Firebase. Puedes agregar
-          fotografÌas, categorÌas, precios,
+          fotograf√≠as, categor√≠as, precios,
           disponibilidad y promociones.
         </Text>
       </View>
@@ -845,3 +857,4 @@ const styles = StyleSheet.create({
     color: "#666",
   },
 });
+

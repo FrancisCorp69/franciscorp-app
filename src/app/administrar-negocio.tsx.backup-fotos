@@ -392,14 +392,10 @@ export default function AdministrarNegocioScreen() {
           title="Fotos"
           description="Logo, portada y galería del negocio"
           onPress={() => {
-            if (!negocioId) return;
-
-            router.push({
-              pathname: "/fotos-negocio",
-              params: {
-                id: negocioId,
-              },
-            });
+            Alert.alert(
+              "Fotos",
+              "Esta sección la conectaremos con Firebase Storage.",
+            );
           }}
         />
 
@@ -860,5 +856,4 @@ const styles = StyleSheet.create({
     color: "#555",
   },
 });
-
 

@@ -1,0 +1,882 @@
+﻿import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { router, useLocalSearchParams } from "expo-router";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+} from "firebase/firestore";
+import React, { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { db } from "../services/firebase";
+
+interface Negocio {
+  id: string;
+  nombre?: string;
+  tipo?: string;
+  tipoNombre?: string;
+  categoria?: string;
+  descripcion?: string;
+  estado?: string;
+  logoUrl?: string;
+  portadaUrl?: string;
+  galeriaFotos?: string[];
+  contacto?: {
+    telefono?: string;
+    whatsapp?: string;
+    correo?: string;
+  };
+  ubicacion?: {
+    direccion?: string;
+    ciudad?: string;
+    provincia?: string;
+  };
+  oferta?: {
+    tipo?: string;
+  };
+}
+
+interface Producto {
+  id: string;
+  nombre?: string;
+  descripcion?: string;
+  precio?: number;
+  categoria?: string;
+  foto?: string;
+  disponible?: boolean;
+  destacado?: boolean;
+}
+
+export default function VistaNegocioScreen() {
+  const { id } = useLocalSearchParams<{ id?: string }>();
+
+  const [negocio, setNegocio] = useState<Negocio | null>(null);
+  const [productos, setProductos] = useState<Producto[]>([]);
+  const [cargando, setCargando] = useState(true);
+
+  useEffect(() => {
+    cargarNegocio();
+  }, [id]);
+
+  async function cargarNegocio() {
+    if (!id) {
+      setCargando(false);
+      return;
+    }
+
+    try {
+      setCargando(true);
+
+      const negocioRef = doc(db, "negocios", id);
+      const negocioSnap = await getDoc(negocioRef);
+
+      if (!negocioSnap.exists()) {
+        setNegocio(null);
+        setProductos([]);
+        return;
+      }
+
+      const datos = negocioSnap.data();
+
+      const galeria = Array.isArray(datos.galeriaFotos)
+        ? datos.galeriaFotos.filter(
+            (foto): foto is string =>
+              typeof foto === "string" && foto.length > 0
+          )
+        : [];
+
+      setNegocio({
+        id: negocioSnap.id,
+        nombre: datos.nombre,
+        tipo: datos.tipo,
+        tipoNombre: datos.tipoNombre,
+        categoria: datos.categoria,
+        descripcion: datos.descripcion,
+        estado: datos.estado,
+        logoUrl: datos.logoUrl,
+        portadaUrl: datos.portadaUrl,
+        galeriaFotos: galeria,
+        contacto: datos.contacto,
+        ubicacion: datos.ubicacion,
+        oferta: datos.oferta,
+      });
+
+      const productosRef = collection(
+        db,
+        "negocios",
+        id,
+        "productos"
+      );
+
+      const productosSnap = await getDocs(productosRef);
+
+      const listaProductos: Producto[] = productosSnap.docs.map(
+        (productoDoc) => {
+          const datosProducto = productoDoc.data();
+
+          return {
+            id: productoDoc.id,
+            nombre: datosProducto.nombre,
+            descripcion: datosProducto.descripcion,
+            precio:
+              typeof datosProducto.precio === "number"
+                ? datosProducto.precio
+                : Number(datosProducto.precio) || 0,
+            categoria: datosProducto.categoria,
+            foto: datosProducto.foto,
+            disponible:
+              datosProducto.disponible !== false,
+            destacado:
+              datosProducto.destacado === true,
+          };
+        }
+      );
+
+      setProductos(listaProductos);
+    } catch (error) {
+      console.error(
+        "ERROR CARGANDO VISTA DEL NEGOCIO:",
+        error
+      );
+
+      Alert.alert(
+        "Error",
+        "No fue posible cargar la información del negocio."
+      );
+    } finally {
+      setCargando(false);
+    }
+  }
+
+  function volver() {
+    router.back();
+  }
+
+  function agregarAlCarrito(producto: Producto) {
+    Alert.alert(
+      "Próximamente",
+      `"${producto.nombre || "Producto"}" se podrá agregar al carrito cuando implementemos el sistema de pedidos.`
+    );
+  }
+
+  if (cargando) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" />
+
+        <Text style={styles.loadingText}>
+          Cargando negocio...
+        </Text>
+      </View>
+    );
+  }
+
+  if (!negocio) {
+    return (
+      <View style={styles.loadingContainer}>
+        <MaterialCommunityIcons
+          name="store-off-outline"
+          size={64}
+        />
+
+        <Text style={styles.emptyTitle}>
+          Negocio no encontrado
+        </Text>
+
+        <Text style={styles.emptyText}>
+          No pudimos encontrar la información de este negocio.
+        </Text>
+
+        <Pressable
+          style={styles.backButtonSimple}
+          onPress={volver}
+        >
+          <Text style={styles.backButtonSimpleText}>
+            Volver
+          </Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  const nombreNegocio = negocio.nombre || "Negocio";
+
+  const categoria =
+    negocio.tipoNombre ||
+    negocio.tipo ||
+    negocio.categoria ||
+    "Negocio";
+
+  const direccion = negocio.ubicacion?.direccion;
+  const ciudad = negocio.ubicacion?.ciudad;
+  const provincia = negocio.ubicacion?.provincia;
+
+  const ubicacionTexto = [
+    direccion,
+    ciudad,
+    provincia,
+  ]
+    .filter(Boolean)
+    .join(", ");
+
+  const negocioAbierto =
+    negocio.estado?.toLowerCase() !== "cerrado";
+
+  return (
+    <View style={styles.container}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        <View style={styles.portadaContainer}>
+          {negocio.portadaUrl ? (
+            <Image
+              source={{ uri: negocio.portadaUrl }}
+              style={styles.portada}
+            />
+          ) : (
+            <View style={styles.portadaPlaceholder}>
+              <MaterialCommunityIcons
+                name="store"
+                size={70}
+              />
+
+              <Text style={styles.portadaPlaceholderText}>
+                {nombreNegocio}
+              </Text>
+            </View>
+          )}
+
+          <View style={styles.portadaOverlay} />
+
+          <Pressable
+            style={styles.backButton}
+            onPress={volver}
+          >
+            <MaterialCommunityIcons
+              name="arrow-left"
+              size={25}
+              color="#fff"
+            />
+          </Pressable>
+        </View>
+
+        <View style={styles.infoContainer}>
+          <View style={styles.logoWrapper}>
+            {negocio.logoUrl ? (
+              <Image
+                source={{ uri: negocio.logoUrl }}
+                style={styles.logo}
+              />
+            ) : (
+              <View style={styles.logoPlaceholder}>
+                <MaterialCommunityIcons
+                  name="store"
+                  size={42}
+                />
+              </View>
+            )}
+          </View>
+
+          <View style={styles.nameRow}>
+            <View style={styles.nameContainer}>
+              <Text style={styles.nombre}>
+                {nombreNegocio}
+              </Text>
+
+              <Text style={styles.categoria}>
+                {categoria}
+              </Text>
+            </View>
+
+            <View
+              style={[
+                styles.estadoBadge,
+                negocioAbierto
+                  ? styles.estadoAbierto
+                  : styles.estadoCerrado,
+              ]}
+            >
+              <View style={styles.estadoDot} />
+
+              <Text style={styles.estadoText}>
+                {negocioAbierto
+                  ? "Disponible"
+                  : "Cerrado"}
+              </Text>
+            </View>
+          </View>
+
+          {negocio.descripcion ? (
+            <Text style={styles.descripcion}>
+              {negocio.descripcion}
+            </Text>
+          ) : null}
+
+          {ubicacionTexto ? (
+            <View style={styles.detailRow}>
+              <MaterialCommunityIcons
+                name="map-marker-outline"
+                size={21}
+              />
+
+              <Text style={styles.detailText}>
+                {ubicacionTexto}
+              </Text>
+            </View>
+          ) : null}
+
+          {negocio.contacto?.telefono ? (
+            <View style={styles.detailRow}>
+              <MaterialCommunityIcons
+                name="phone-outline"
+                size={20}
+              />
+
+              <Text style={styles.detailText}>
+                {negocio.contacto.telefono}
+              </Text>
+            </View>
+          ) : null}
+        </View>
+
+        {negocio.galeriaFotos &&
+        negocio.galeriaFotos.length > 0 ? (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>
+                Fotos
+              </Text>
+
+              <Text style={styles.sectionCount}>
+                {negocio.galeriaFotos.length}
+              </Text>
+            </View>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.galleryContent}
+            >
+              {negocio.galeriaFotos.map(
+                (foto, index) => (
+                  <Image
+                    key={`${foto}-${index}`}
+                    source={{ uri: foto }}
+                    style={styles.galleryImage}
+                  />
+                )
+              )}
+            </ScrollView>
+          </View>
+        ) : null}
+
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>
+              Menú
+            </Text>
+
+            <Text style={styles.sectionCount}>
+              {productos.length}{" "}
+              {productos.length === 1
+                ? "producto"
+                : "productos"}
+            </Text>
+          </View>
+
+          {productos.length === 0 ? (
+            <View style={styles.noProducts}>
+              <MaterialCommunityIcons
+                name="food-off-outline"
+                size={48}
+              />
+
+              <Text style={styles.noProductsTitle}>
+                No hay productos todavía
+              </Text>
+
+              <Text style={styles.noProductsText}>
+                Este negocio aún no ha publicado productos.
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.productsContainer}>
+              {productos.map((producto) => (
+                <View
+                  key={producto.id}
+                  style={[
+                    styles.productCard,
+                    producto.disponible === false &&
+                      styles.productUnavailable,
+                  ]}
+                >
+                  {producto.foto ? (
+                    <Image
+                      source={{ uri: producto.foto }}
+                      style={styles.productImage}
+                    />
+                  ) : (
+                    <View
+                      style={styles.productImagePlaceholder}
+                    >
+                      <MaterialCommunityIcons
+                        name="food-outline"
+                        size={42}
+                      />
+                    </View>
+                  )}
+
+                  <View style={styles.productInfo}>
+                    {producto.destacado ? (
+                      <View style={styles.destacadoBadge}>
+                        <MaterialCommunityIcons
+                          name="star"
+                          size={13}
+                        />
+
+                        <Text style={styles.destacadoText}>
+                          Destacado
+                        </Text>
+                      </View>
+                    ) : null}
+
+                    <Text
+                      style={styles.productName}
+                      numberOfLines={2}
+                    >
+                      {producto.nombre ||
+                        "Producto sin nombre"}
+                    </Text>
+
+                    {producto.categoria ? (
+                      <Text
+                        style={styles.productCategory}
+                      >
+                        {producto.categoria}
+                      </Text>
+                    ) : null}
+
+                    {producto.descripcion ? (
+                      <Text
+                        style={styles.productDescription}
+                        numberOfLines={2}
+                      >
+                        {producto.descripcion}
+                      </Text>
+                    ) : null}
+
+                    <View style={styles.productBottom}>
+                      <Text style={styles.productPrice}>
+                        $
+                        {(
+                          Number(producto.precio) || 0
+                        ).toFixed(2)}
+                      </Text>
+
+                      {producto.disponible === false ? (
+                        <View
+                          style={styles.unavailableBadge}
+                        >
+                          <Text
+                            style={styles.unavailableText}
+                          >
+                            Agotado
+                          </Text>
+                        </View>
+                      ) : (
+                        <Pressable
+                          style={styles.addButton}
+                          onPress={() =>
+                            agregarAlCarrito(producto)
+                          }
+                        >
+                          <MaterialCommunityIcons
+                            name="plus"
+                            size={22}
+                            color="#fff"
+                          />
+                        </Pressable>
+                      )}
+                    </View>
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+
+        <View style={styles.bottomSpace} />
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+
+  scrollContent: {
+    paddingBottom: 30,
+  },
+
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 30,
+    backgroundColor: "#fff",
+  },
+
+  loadingText: {
+    marginTop: 12,
+    fontSize: 15,
+  },
+
+  emptyTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    marginTop: 16,
+  },
+
+  emptyText: {
+    fontSize: 15,
+    textAlign: "center",
+    marginTop: 8,
+    opacity: 0.7,
+  },
+
+  backButtonSimple: {
+    marginTop: 25,
+    paddingHorizontal: 25,
+    paddingVertical: 12,
+    borderRadius: 10,
+    backgroundColor: "#111",
+  },
+
+  backButtonSimpleText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
+
+  portadaContainer: {
+    height: 230,
+    position: "relative",
+  },
+
+  portada: {
+    width: "100%",
+    height: "100%",
+  },
+
+  portadaPlaceholder: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#e8e8e8",
+  },
+
+  portadaPlaceholderText: {
+    fontSize: 20,
+    fontWeight: "700",
+    marginTop: 10,
+  },
+
+  portadaOverlay: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.18)",
+  },
+
+  backButton: {
+    position: "absolute",
+    top: 48,
+    left: 16,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(0,0,0,0.55)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  infoContainer: {
+    paddingHorizontal: 18,
+    paddingBottom: 18,
+    position: "relative",
+  },
+
+  logoWrapper: {
+    marginTop: -45,
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: "#fff",
+    padding: 4,
+    elevation: 4,
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+  },
+
+  logo: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 43,
+  },
+
+  logoPlaceholder: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 43,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#eee",
+  },
+
+  nameRow: {
+    marginTop: 12,
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+  },
+
+  nameContainer: {
+    flex: 1,
+    paddingRight: 10,
+  },
+
+  nombre: {
+    fontSize: 26,
+    fontWeight: "800",
+  },
+
+  categoria: {
+    marginTop: 4,
+    fontSize: 15,
+    opacity: 0.6,
+  },
+
+  estadoBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 20,
+  },
+
+  estadoAbierto: {
+    backgroundColor: "#e9f8ed",
+  },
+
+  estadoCerrado: {
+    backgroundColor: "#f5eaea",
+  },
+
+  estadoDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: "#35a853",
+    marginRight: 6,
+  },
+
+  estadoText: {
+    fontSize: 12,
+    fontWeight: "700",
+  },
+
+  descripcion: {
+    fontSize: 15,
+    lineHeight: 21,
+    marginTop: 13,
+    opacity: 0.75,
+  },
+
+  detailRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 10,
+  },
+
+  detailText: {
+    flex: 1,
+    marginLeft: 8,
+    fontSize: 14,
+    opacity: 0.7,
+  },
+
+  section: {
+    marginTop: 6,
+    paddingHorizontal: 18,
+  },
+
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+
+  sectionTitle: {
+    fontSize: 21,
+    fontWeight: "800",
+  },
+
+  sectionCount: {
+    fontSize: 13,
+    opacity: 0.55,
+  },
+
+  galleryContent: {
+    paddingBottom: 8,
+  },
+
+  galleryImage: {
+    width: 180,
+    height: 120,
+    borderRadius: 14,
+    marginRight: 10,
+  },
+
+  noProducts: {
+    paddingVertical: 45,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  noProductsTitle: {
+    fontSize: 17,
+    fontWeight: "700",
+    marginTop: 12,
+  },
+
+  noProductsText: {
+    fontSize: 14,
+    opacity: 0.6,
+    textAlign: "center",
+    marginTop: 6,
+  },
+
+  productsContainer: {
+    flexDirection: "column",
+  },
+
+  productCard: {
+    flexDirection: "row",
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#e9e9e9",
+    overflow: "hidden",
+    marginBottom: 12,
+  },
+
+  productUnavailable: {
+    opacity: 0.65,
+  },
+
+  productImage: {
+    width: 125,
+    height: 145,
+  },
+
+  productImagePlaceholder: {
+    width: 125,
+    height: 145,
+    backgroundColor: "#f0f0f0",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  productInfo: {
+    flex: 1,
+    padding: 13,
+    justifyContent: "space-between",
+  },
+
+  destacadoBadge: {
+    alignSelf: "flex-start",
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 5,
+  },
+
+  destacadoText: {
+    fontSize: 11,
+    fontWeight: "700",
+    marginLeft: 4,
+  },
+
+  productName: {
+    fontSize: 17,
+    fontWeight: "700",
+  },
+
+  productCategory: {
+    fontSize: 12,
+    opacity: 0.55,
+    marginTop: 3,
+  },
+
+  productDescription: {
+    fontSize: 13,
+    lineHeight: 18,
+    opacity: 0.65,
+    marginTop: 7,
+  },
+
+  productBottom: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 10,
+  },
+
+  productPrice: {
+    fontSize: 19,
+    fontWeight: "800",
+  },
+
+  addButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: "#111",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  unavailableBadge: {
+    paddingHorizontal: 9,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: "#eee",
+  },
+
+  unavailableText: {
+    fontSize: 11,
+    fontWeight: "700",
+  },
+
+  bottomSpace: {
+    height: 25,
+  },
+});

@@ -1,4 +1,4 @@
-﻿import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -14,7 +14,7 @@ export default function FeaturedBusinesses({
     console.log("ID DEL NEGOCIO:", business.id);
 
     router.push({
-      pathname: "/vista-negocio",
+      pathname: "/negocio",
       params: {
         id: String(business.id || ""),
         nombre: String(business.nombre || ""),
@@ -56,7 +56,7 @@ export default function FeaturedBusinesses({
               </View>
             )}
 
-            {/* INFORMACIÃ“N */}
+            {/* INFORMACIÓN */}
             <View style={styles.info}>
               <Text style={styles.name}>{business.nombre}</Text>
 
@@ -69,25 +69,25 @@ export default function FeaturedBusinesses({
               ) : null}
 
               <Text style={styles.address}>
-                ðŸ“ {business.direccion}
+                📍 {business.direccion}
                 {business.ciudad ? `, ${business.ciudad}` : ""}
               </Text>
 
               <View style={styles.details}>
                 <Text style={styles.detail}>
-                  â­ {business.calificacion || "0"}
+                  ⭐ {business.calificacion || "0"}
                 </Text>
 
                 <Text style={styles.detail}>
-                  ðŸšš ${business.costoEntrega || "0"}
+                  🚚 ${business.costoEntrega || "0"}
                 </Text>
 
                 <Text style={styles.detail}>
-                  â± {business.tiempoEntrega || "0"} min
+                  ⏱ {business.tiempoEntrega || "0"} min
                 </Text>
               </View>
 
-              {/* BOTÃ“N */}
+              {/* BOTÓN */}
               <Pressable
                 style={styles.button}
                 onPress={() => abrirNegocio(business)}
@@ -218,4 +218,3 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 });
-
