@@ -1,4 +1,4 @@
-﻿import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
@@ -12,8 +12,6 @@ import {
   View,
 } from "react-native";
 
-import { useCart } from "../../context/CartContext";
-
 type HeaderProps = {
   nombre: string;
   fotoPerfil: string | null;
@@ -23,8 +21,6 @@ type Rol = "Delivery" | "Expreso" | "Negocios" | "Flete";
 
 export default function Header({ nombre, fotoPerfil }: HeaderProps) {
   const [menuAbierto, setMenuAbierto] = useState(false);
-
-  const { totalItems } = useCart();
 
   // Rol que actualmente está utilizando el usuario
   const [rolActivo, setRolActivo] = useState<Rol | null>(null);
@@ -51,28 +47,6 @@ export default function Header({ nombre, fotoPerfil }: HeaderProps) {
           <Text style={styles.subtitulo}>Bienvenido a FrancisCorp</Text>
         </View>
 
-        {/* ================= CARRITO ================= */}
-        <TouchableOpacity
-          style={styles.carrito}
-          activeOpacity={0.7}
-          onPress={() => router.push("/carrito")}
-        >
-          <MaterialCommunityIcons
-            name="cart-outline"
-            size={29}
-            color="#0066CC"
-          />
-
-          {totalItems > 0 && (
-            <View style={styles.carritoBadge}>
-              <Text style={styles.carritoBadgeText}>
-                {totalItems > 99 ? "99+" : totalItems}
-              </Text>
-            </View>
-          )}
-        </TouchableOpacity>
-
-        {/* ================= FOTO ================= */}
         <Image
           source={
             fotoPerfil
@@ -184,9 +158,7 @@ export default function Header({ nombre, fotoPerfil }: HeaderProps) {
 
                 <Text style={styles.rolTexto}>Expreso</Text>
 
-                {rolActivo === "Expreso" && (
-                  <View style={styles.puntoActivo} />
-                )}
+                {rolActivo === "Expreso" && <View style={styles.puntoActivo} />}
               </TouchableOpacity>
 
               {/* NEGOCIOS */}
@@ -226,9 +198,7 @@ export default function Header({ nombre, fotoPerfil }: HeaderProps) {
 
                 <Text style={styles.rolTexto}>Flete</Text>
 
-                {rolActivo === "Flete" && (
-                  <View style={styles.puntoActivo} />
-                )}
+                {rolActivo === "Flete" && <View style={styles.puntoActivo} />}
               </TouchableOpacity>
 
               {/* ================= SEPARADOR ================= */}
@@ -314,9 +284,7 @@ export default function Header({ nombre, fotoPerfil }: HeaderProps) {
                   color="#0066CC"
                 />
 
-                <Text style={styles.opcionTexto}>
-                  Ayuda y soporte técnico
-                </Text>
+                <Text style={styles.opcionTexto}>Ayuda y soporte técnico</Text>
               </TouchableOpacity>
 
               {/* ================= SEPARADOR ================= */}
@@ -377,34 +345,6 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontWeight: "bold",
     color: "#0066CC",
-  },
-
-  carrito: {
-    width: 42,
-    height: 50,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 5,
-    position: "relative",
-  },
-
-  carritoBadge: {
-    position: "absolute",
-    top: 2,
-    right: 0,
-    minWidth: 19,
-    height: 19,
-    borderRadius: 10,
-    backgroundColor: "#D32F2F",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 4,
-  },
-
-  carritoBadgeText: {
-    color: "#fff",
-    fontSize: 10,
-    fontWeight: "bold",
   },
 
   foto: {

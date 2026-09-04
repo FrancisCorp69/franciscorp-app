@@ -161,18 +161,6 @@ export default function VistaNegocioScreen() {
     router.back();
   }
 
-  function abrirProducto(producto: Producto) {
-    if (!id) return;
-
-    router.push({
-      pathname: "/vista-producto",
-      params: {
-        negocioId: String(id),
-        productoId: String(producto.id),
-      },
-    });
-  }
-
   function agregarAlCarrito(producto: Producto) {
     Alert.alert(
       "Próximamente",
@@ -432,26 +420,21 @@ export default function VistaNegocioScreen() {
                       styles.productUnavailable,
                   ]}
                 >
-                  <Pressable
-                    style={styles.productImagePressable}
-                    onPress={() => abrirProducto(producto)}
-                  >
-                    {producto.foto ? (
-                      <Image
-                        source={{ uri: producto.foto }}
-                        style={styles.productImage}
+                  {producto.foto ? (
+                    <Image
+                      source={{ uri: producto.foto }}
+                      style={styles.productImage}
+                    />
+                  ) : (
+                    <View
+                      style={styles.productImagePlaceholder}
+                    >
+                      <MaterialCommunityIcons
+                        name="food-outline"
+                        size={42}
                       />
-                    ) : (
-                      <View
-                        style={styles.productImagePlaceholder}
-                      >
-                        <MaterialCommunityIcons
-                          name="food-outline"
-                          size={42}
-                        />
-                      </View>
-                    )}
-                  </Pressable>
+                    </View>
+                  )}
 
                   <View style={styles.productInfo}>
                     {producto.destacado ? (
@@ -467,34 +450,30 @@ export default function VistaNegocioScreen() {
                       </View>
                     ) : null}
 
-                    <Pressable
-                      onPress={() => abrirProducto(producto)}
+                    <Text
+                      style={styles.productName}
+                      numberOfLines={2}
                     >
+                      {producto.nombre ||
+                        "Producto sin nombre"}
+                    </Text>
+
+                    {producto.categoria ? (
                       <Text
-                        style={styles.productName}
+                        style={styles.productCategory}
+                      >
+                        {producto.categoria}
+                      </Text>
+                    ) : null}
+
+                    {producto.descripcion ? (
+                      <Text
+                        style={styles.productDescription}
                         numberOfLines={2}
                       >
-                        {producto.nombre ||
-                          "Producto sin nombre"}
+                        {producto.descripcion}
                       </Text>
-
-                      {producto.categoria ? (
-                        <Text
-                          style={styles.productCategory}
-                        >
-                          {producto.categoria}
-                        </Text>
-                      ) : null}
-
-                      {producto.descripcion ? (
-                        <Text
-                          style={styles.productDescription}
-                          numberOfLines={2}
-                        >
-                          {producto.descripcion}
-                        </Text>
-                      ) : null}
-                    </Pressable>
+                    ) : null}
 
                     <View style={styles.productBottom}>
                       <Text style={styles.productPrice}>
@@ -812,11 +791,6 @@ const styles = StyleSheet.create({
 
   productUnavailable: {
     opacity: 0.65,
-  },
-
-  productImagePressable: {
-    width: 125,
-    height: 145,
   },
 
   productImage: {

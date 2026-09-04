@@ -1,5 +1,11 @@
-import { Stack } from "expo-router";
+﻿import { Stack } from "expo-router";
+
+import { CartProvider } from "../context/CartContext";
 
 export default function Layout() {
-  return <Stack />;
+  return (
+    <CartProvider>
+      <Stack />
+    </CartProvider>
+  );
 }

@@ -1,0 +1,601 @@
+﻿import React from "react";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { router } from "expo-router";
+
+import { useCart } from "../context/CartContext";
+
+export default function ConfirmarPedidoScreen() {
+  const {
+    cart,
+    items,
+    subtotal,
+  } = useCart();
+
+  if (!cart || items.length === 0) {
+    return (
+      <View style={styles.emptyContainer}>
+        <MaterialCommunityIcons
+          name="cart-outline"
+          size={70}
+          color="#999"
+        />
+
+        <Text style={styles.emptyTitle}>
+          Tu carrito está vacío
+        </Text>
+
+        <Text style={styles.emptyText}>
+          Agrega productos antes de continuar con el pedido.
+        </Text>
+
+        <Pressable
+          style={styles.emptyButton}
+          onPress={() => router.push("/cliente")}
+        >
+          <Text style={styles.emptyButtonText}>
+            Explorar negocios
+          </Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  return (
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <View style={styles.container}>
+        {/* HEADER */}
+        <View style={styles.header}>
+          <Pressable
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <MaterialCommunityIcons
+              name="arrow-left"
+              size={26}
+              color="#222"
+            />
+          </Pressable>
+
+          <Text style={styles.headerTitle}>
+            Confirmar pedido
+          </Text>
+
+          <View style={styles.headerSpace} />
+        </View>
+
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* NEGOCIO */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              Negocio
+            </Text>
+
+            <View style={styles.businessCard}>
+              <View style={styles.businessIcon}>
+                <MaterialCommunityIcons
+                  name="store"
+                  size={26}
+                  color="#0066CC"
+                />
+              </View>
+
+              <View style={styles.businessInfo}>
+                <Text style={styles.businessName}>
+                  {cart.negocioNombre}
+                </Text>
+
+                <Text style={styles.businessDescription}>
+                  Tu pedido será preparado por este negocio.
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* PRODUCTOS */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              Resumen del pedido
+            </Text>
+
+            {items.map((item) => (
+              <View
+                key={item.productoId}
+                style={styles.productRow}
+              >
+                <View style={styles.quantityBox}>
+                  <Text style={styles.quantityText}>
+                    {item.cantidad}x
+                  </Text>
+                </View>
+
+                <View style={styles.productInfo}>
+                  <Text style={styles.productName}>
+                    {item.nombre}
+                  </Text>
+
+                  <Text style={styles.productUnitPrice}>
+                    ${item.precio.toFixed(2)} c/u
+                  </Text>
+                </View>
+
+                <Text style={styles.productSubtotal}>
+                  ${item.subtotal.toFixed(2)}
+                </Text>
+              </View>
+            ))}
+          </View>
+
+          {/* DIRECCIÓN */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              Dirección de entrega
+            </Text>
+
+            <Pressable style={styles.optionCard}>
+              <View style={styles.optionIcon}>
+                <MaterialCommunityIcons
+                  name="map-marker"
+                  size={25}
+                  color="#0066CC"
+                />
+              </View>
+
+              <View style={styles.optionInfo}>
+                <Text style={styles.optionTitle}>
+                  Seleccionar dirección
+                </Text>
+
+                <Text style={styles.optionSubtitle}>
+                  Indica dónde quieres recibir tu pedido.
+                </Text>
+              </View>
+
+              <MaterialCommunityIcons
+                name="chevron-right"
+                size={25}
+                color="#777"
+              />
+            </Pressable>
+          </View>
+
+          {/* REFERENCIA */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              Referencia
+            </Text>
+
+            <Pressable style={styles.optionCard}>
+              <View style={styles.optionIcon}>
+                <MaterialCommunityIcons
+                  name="note-text-outline"
+                  size={24}
+                  color="#0066CC"
+                />
+              </View>
+
+              <View style={styles.optionInfo}>
+                <Text style={styles.optionTitle}>
+                  Agregar una referencia
+                </Text>
+
+                <Text style={styles.optionSubtitle}>
+                  Ejemplo: casa de color blanco, junto al parque.
+                </Text>
+              </View>
+
+              <MaterialCommunityIcons
+                name="chevron-right"
+                size={25}
+                color="#777"
+              />
+            </Pressable>
+          </View>
+
+          {/* MÉTODO DE PAGO */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              Método de pago
+            </Text>
+
+            <Pressable style={styles.optionCard}>
+              <View style={styles.optionIcon}>
+                <MaterialCommunityIcons
+                  name="credit-card-outline"
+                  size={25}
+                  color="#0066CC"
+                />
+              </View>
+
+              <View style={styles.optionInfo}>
+                <Text style={styles.optionTitle}>
+                  Seleccionar método de pago
+                </Text>
+
+                <Text style={styles.optionSubtitle}>
+                  Elige cómo deseas pagar tu pedido.
+                </Text>
+              </View>
+
+              <MaterialCommunityIcons
+                name="chevron-right"
+                size={25}
+                color="#777"
+              />
+            </Pressable>
+          </View>
+
+          {/* RESUMEN DE COSTOS */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              Resumen de costos
+            </Text>
+
+            <View style={styles.summaryCard}>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>
+                  Subtotal
+                </Text>
+
+                <Text style={styles.summaryValue}>
+                  ${subtotal.toFixed(2)}
+                </Text>
+              </View>
+
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>
+                  Envío
+                </Text>
+
+                <Text style={styles.summaryValue}>
+                  Por calcular
+                </Text>
+              </View>
+
+              <View style={styles.divider} />
+
+              <View style={styles.totalRow}>
+                <Text style={styles.totalLabel}>
+                  Total
+                </Text>
+
+                <Text style={styles.totalValue}>
+                  ${subtotal.toFixed(2)}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* BOTÓN FINAL */}
+          <View style={styles.buttonContainer}>
+            <Pressable
+              style={styles.confirmButton}
+              onPress={() => {}}
+            >
+              <Text style={styles.confirmButtonText}>
+                Confirmar pedido
+              </Text>
+
+              <MaterialCommunityIcons
+                name="check-circle-outline"
+                size={23}
+                color="#fff"
+              />
+            </Pressable>
+          </View>
+
+          {/* ESPACIO EXTRA PARA TECLADO Y NAVEGACIÓN */}
+          <View style={styles.bottomSpace} />
+        </ScrollView>
+      </View>
+    </KeyboardAvoidingView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#F5F6F8",
+  },
+
+  emptyContainer: {
+    flex: 1,
+    backgroundColor: "#F5F6F8",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 30,
+  },
+
+  emptyTitle: {
+    marginTop: 15,
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#222",
+  },
+
+  emptyText: {
+    marginTop: 8,
+    fontSize: 15,
+    color: "#777",
+    textAlign: "center",
+    lineHeight: 22,
+  },
+
+  emptyButton: {
+    marginTop: 25,
+    backgroundColor: "#0066CC",
+    paddingHorizontal: 25,
+    paddingVertical: 13,
+    borderRadius: 10,
+  },
+
+  emptyButtonText: {
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+
+  header: {
+    height: 62,
+    backgroundColor: "#fff",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E5E5",
+  },
+
+  backButton: {
+    width: 42,
+    height: 42,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  headerTitle: {
+    fontSize: 19,
+    fontWeight: "700",
+    color: "#222",
+  },
+
+  headerSpace: {
+    width: 42,
+  },
+
+  scroll: {
+    flex: 1,
+  },
+
+  content: {
+    padding: 16,
+    paddingBottom: 120,
+  },
+
+  section: {
+    marginBottom: 20,
+  },
+
+  sectionTitle: {
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#222",
+    marginBottom: 10,
+  },
+
+  businessCard: {
+    backgroundColor: "#fff",
+    borderRadius: 14,
+    padding: 15,
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E5E5E5",
+  },
+
+  businessIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#EAF3FF",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+
+  businessInfo: {
+    flex: 1,
+  },
+
+  businessName: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#222",
+  },
+
+  businessDescription: {
+    marginTop: 4,
+    fontSize: 13,
+    color: "#777",
+    lineHeight: 18,
+  },
+
+  productRow: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 13,
+    marginBottom: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E8E8E8",
+  },
+
+  quantityBox: {
+    minWidth: 42,
+    height: 34,
+    borderRadius: 8,
+    backgroundColor: "#EAF3FF",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 10,
+  },
+
+  quantityText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#0066CC",
+  },
+
+  productInfo: {
+    flex: 1,
+  },
+
+  productName: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#222",
+  },
+
+  productUnitPrice: {
+    marginTop: 3,
+    fontSize: 12,
+    color: "#777",
+  },
+
+  productSubtotal: {
+    marginLeft: 10,
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#222",
+  },
+
+  optionCard: {
+    backgroundColor: "#fff",
+    borderRadius: 14,
+    padding: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E5E5E5",
+  },
+
+  optionIcon: {
+    width: 43,
+    height: 43,
+    borderRadius: 22,
+    backgroundColor: "#EAF3FF",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 11,
+  },
+
+  optionInfo: {
+    flex: 1,
+  },
+
+  optionTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#222",
+  },
+
+  optionSubtitle: {
+    marginTop: 4,
+    fontSize: 12,
+    color: "#777",
+    lineHeight: 17,
+  },
+
+  summaryCard: {
+    backgroundColor: "#fff",
+    borderRadius: 14,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#E5E5E5",
+  },
+
+  summaryRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 11,
+  },
+
+  summaryLabel: {
+    fontSize: 14,
+    color: "#666",
+  },
+
+  summaryValue: {
+    fontSize: 14,
+    color: "#333",
+    fontWeight: "600",
+  },
+
+  divider: {
+    height: 1,
+    backgroundColor: "#E5E5E5",
+    marginVertical: 5,
+  },
+
+  totalRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 10,
+  },
+
+  totalLabel: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#222",
+  },
+
+  totalValue: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#0066CC",
+  },
+
+  buttonContainer: {
+    marginTop: 4,
+  },
+
+  confirmButton: {
+    minHeight: 55,
+    backgroundColor: "#0066CC",
+    borderRadius: 13,
+    paddingHorizontal: 18,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 9,
+  },
+
+  confirmButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "800",
+  },
+
+  bottomSpace: {
+    height: 70,
+  },
+});

@@ -60,6 +60,51 @@ service cloud.firestore {
                                == request.auth.uid;
     }
 
+
+    /*
+     * ==============================
+     * PEDIDOS
+     * ==============================
+     */
+
+    match /pedidos/{pedidoId} {
+
+      /*
+       * El cliente solamente puede crear
+       * pedidos a su propio nombre.
+       */
+      allow create: if request.auth != null
+                    && request.resource.data.usuarioId
+                       == request.auth.uid;
+
+
+      /*
+       * El cliente puede leer sus propios pedidos.
+       *
+       * El propietario del negocio puede leer
+       * los pedidos realizados a su negocio.
+       */
+      allow read: if request.auth != null
+                  && (
+                    resource.data.usuarioId
+                    == request.auth.uid
+
+                    ||
+
+                    get(
+                      /databases/$(database)/documents/negocios/$(resource.data.negocioId)
+                    ).data.propietarioId
+                    == request.auth.uid
+                  );
+
+
+      /*
+       * Los pedidos no pueden ser modificados
+       * ni eliminados directamente por el cliente.
+       */
+      allow update, delete: if false;
+    }
+
   }
 
 }
