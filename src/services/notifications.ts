@@ -1,0 +1,211 @@
+﻿import * as Notifications from "expo-notifications";
+import Constants from "expo-constants";
+import { Platform } from "react-native";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { db } from "./firebase";
+
+/**
+ * Configuración inicial de las notificaciones.
+ *
+ * Las notificaciones que lleguen mientras la aplicación está
+ * abierta utilizarán sonido y vibración.
+ */
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
+
+/**
+ * Configura el canal principal de notificaciones en Android.
+ */
+async function configurarCanalAndroid() {
+  if (Platform.OS !== "android") {
+    return;
+  }
+
+  await Notifications.setNotificationChannelAsync("pedidos", {
+    name: "Pedidos",
+    importance: Notifications.AndroidImportance.MAX,
+    vibrationPattern: [0, 250, 250, 250],
+    enableVibrate: true,
+    enableLights: true,
+    lockscreenVisibility:
+      Notifications.AndroidNotificationVisibility.PUBLIC,
+  });
+}
+
+/**
+ * Obtiene el projectId utilizado por Expo/EAS.
+ */
+function obtenerProjectId(): string | undefined {
+  return (
+    Constants.expoConfig?.extra?.eas?.projectId ??
+    Constants.easConfig?.projectId
+  );
+}
+
+/**
+ * Solicita permiso y obtiene el Expo Push Token.
+ */
+export async function registrarNotificaciones(
+  uid: string
+): Promise<string | null> {
+  try {
+    if (!uid) {
+      console.log("NOTIFICACIONES: UID no disponible");
+      return null;
+    }
+
+    await configurarCanalAndroid();
+
+    const permisos = await Notifications.getPermissionsAsync();
+
+    let status = permisos.status;
+
+    if (status !== "granted") {
+      const nuevosPermisos =
+        await Notifications.requestPermissionsAsync();
+
+      status = nuevosPermisos.status;
+    }
+
+    if (status !== "granted") {
+      console.log(
+        "NOTIFICACIONES: El usuario no concedió permiso"
+      );
+      return null;
+    }
+
+    const projectId = obtenerProjectId();
+
+    if (!projectId) {
+      console.error(
+        "NOTIFICACIONES: No se encontró el projectId de EAS"
+      );
+      return null;
+    }
+
+    const tokenResponse =
+      await Notifications.getExpoPushTokenAsync({
+        projectId,
+      });
+
+    const token = tokenResponse.data;
+
+    if (!token) {
+      console.error(
+        "NOTIFICACIONES: No se obtuvo Expo Push Token"
+      );
+      return null;
+    }
+
+    console.log(
+      "NOTIFICACIONES: Expo Push Token obtenido:",
+      token
+    );
+
+    const usuarioRef = doc(db, "usuarios", uid);
+    const usuarioSnap = await getDoc(usuarioRef);
+
+    const datosActuales = usuarioSnap.exists()
+      ? usuarioSnap.data()
+      : {};
+
+    const tokensActuales = Array.isArray(
+      datosActuales.expoPushTokens
+    )
+      ? datosActuales.expoPushTokens
+      : [];
+
+    const tokensActualizados = Array.from(
+      new Set([...tokensActuales, token])
+    );
+
+    await setDoc(
+      usuarioRef,
+      {
+        expoPushTokens: tokensActualizados,
+        notificaciones: {
+          habilitadas: true,
+        },
+      },
+      {
+        merge: true,
+      }
+    );
+
+    console.log(
+      "NOTIFICACIONES: Token guardado correctamente en Firebase"
+    );
+
+    return token;
+  } catch (error) {
+    console.error(
+      "NOTIFICACIONES: Error registrando dispositivo:",
+      error
+    );
+
+    return null;
+  }
+}
+
+/**
+ * Elimina un token concreto del usuario.
+ *
+ * Se utilizará posteriormente cuando el dispositivo deje de ser válido.
+ */
+export async function eliminarTokenNotificaciones(
+  uid: string,
+  token: string
+): Promise<void> {
+  try {
+    if (!uid || !token) {
+      return;
+    }
+
+    const usuarioRef = doc(db, "usuarios", uid);
+    const usuarioSnap = await getDoc(usuarioRef);
+
+    if (!usuarioSnap.exists()) {
+      return;
+    }
+
+    const datos = usuarioSnap.data();
+
+    const tokensActuales = Array.isArray(
+      datos.expoPushTokens
+    )
+      ? datos.expoPushTokens
+      : [];
+
+    const tokensActualizados = tokensActuales.filter(
+      (item: string) => item !== token
+    );
+
+    await setDoc(
+      usuarioRef,
+      {
+        expoPushTokens: tokensActualizados,
+      },
+      {
+        merge: true,
+      }
+    );
+
+    console.log(
+      "NOTIFICACIONES: Token eliminado correctamente"
+    );
+  } catch (error) {
+    console.error(
+      "NOTIFICACIONES: Error eliminando token:",
+      error
+    );
+  }
+}
+
+

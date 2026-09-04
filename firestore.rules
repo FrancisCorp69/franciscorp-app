@@ -4,24 +4,10 @@ service cloud.firestore {
 
   match /databases/{database}/documents {
 
-    /*
-     * ==============================
-     * USUARIOS
-     * ==============================
-     */
-
     match /usuarios/{userId} {
-
       allow read, write: if request.auth != null
                          && request.auth.uid == userId;
     }
-
-
-    /*
-     * ==============================
-     * NEGOCIOS
-     * ==============================
-     */
 
     match /negocios/{negocioId} {
 
@@ -35,13 +21,6 @@ service cloud.firestore {
                             && resource.data.propietarioId
                                == request.auth.uid;
     }
-
-
-    /*
-     * ==============================
-     * PRODUCTOS
-     * ==============================
-     */
 
     match /negocios/{negocioId}/productos/{productoId} {
 
@@ -60,30 +39,19 @@ service cloud.firestore {
                                == request.auth.uid;
     }
 
-
-    /*
-     * ==============================
-     * PEDIDOS
-     * ==============================
-     */
-
     match /pedidos/{pedidoId} {
 
-      /*
-       * El cliente solamente puede crear
-       * pedidos a su propio nombre.
-       */
+      // CLIENTE: puede crear su propio pedido
       allow create: if request.auth != null
                     && request.resource.data.usuarioId
                        == request.auth.uid;
 
 
-      /*
-       * El cliente puede leer sus propios pedidos.
-       *
-       * El propietario del negocio puede leer
-       * los pedidos realizados a su negocio.
-       */
+      // CLIENTE:
+      // puede leer sus pedidos.
+      //
+      // NEGOCIO:
+      // puede leer pedidos de su propio negocio.
       allow read: if request.auth != null
                   && (
                     resource.data.usuarioId
@@ -91,20 +59,90 @@ service cloud.firestore {
 
                     ||
 
-                    get(
-                      /databases/$(database)/documents/negocios/$(resource.data.negocioId)
-                    ).data.propietarioId
-                    == request.auth.uid
+                    (
+                      resource.data.negocioId != null
+                      && get(
+                           /databases/$(database)/documents/negocios/$(resource.data.negocioId)
+                         ).data.propietarioId
+                         == request.auth.uid
+                    )
                   );
 
 
-      /*
-       * Los pedidos no pueden ser modificados
-       * ni eliminados directamente por el cliente.
-       */
-      allow update, delete: if false;
+      // NEGOCIO:
+      // solamente el propietario del negocio puede cambiar
+      // el estado de sus pedidos.
+      allow update: if request.auth != null
+
+                    && resource.data.negocioId != null
+
+                    && get(
+                         /databases/$(database)/documents/negocios/$(resource.data.negocioId)
+                       ).data.propietarioId
+                       == request.auth.uid
+
+                    // El negocio solamente puede modificar
+                    // estado y fechaActualizacion.
+                    && request.resource.data.diff(resource.data)
+                       .affectedKeys()
+                       .hasOnly([
+                         "estado",
+                         "fechaActualizacion"
+                       ])
+
+                    // Transiciones permitidas.
+                    && (
+
+                      // Pendiente -> aceptado
+                      (
+                        resource.data.estado == "pendiente"
+                        && request.resource.data.estado == "aceptado"
+                      )
+
+                      ||
+
+                      // Pendiente -> cancelado
+                      (
+                        resource.data.estado == "pendiente"
+                        && request.resource.data.estado == "cancelado"
+                      )
+
+                      ||
+
+                      // Aceptado -> preparando
+                      (
+                        resource.data.estado == "aceptado"
+                        && request.resource.data.estado == "preparando"
+                      )
+
+                      ||
+
+                      // Preparando -> listo
+                      (
+                        resource.data.estado == "preparando"
+                        && request.resource.data.estado == "listo"
+                      )
+
+                      ||
+
+                      // Listo -> en_camino
+                      (
+                        resource.data.estado == "listo"
+                        && request.resource.data.estado == "en_camino"
+                      )
+
+                      ||
+
+                      // En camino -> entregado
+                      (
+                        resource.data.estado == "en_camino"
+                        && request.resource.data.estado == "entregado"
+                      )
+                    );
+
+
+      // No permitimos borrar pedidos.
+      allow delete: if false;
     }
-
   }
-
 }

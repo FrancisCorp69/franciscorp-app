@@ -424,10 +424,14 @@ export default function AdministrarNegocioScreen() {
           title="Pedidos"
           description="Consulta y administra los pedidos"
           onPress={() => {
-            Alert.alert(
-              "Pedidos",
-              "El sistema de pedidos será conectado en la siguiente etapa.",
-            );
+            if (!negocioId) return;
+
+            router.push({
+              pathname: "/pedidos-negocio",
+              params: {
+                id: negocioId,
+              },
+            });
           }}
         />
       </View>
@@ -860,5 +864,7 @@ const styles = StyleSheet.create({
     color: "#555",
   },
 });
+
+
 
 

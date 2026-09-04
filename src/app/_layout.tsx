@@ -1,11 +1,13 @@
 ﻿import { Stack } from "expo-router";
-
 import { CartProvider } from "../context/CartContext";
+import AuthProvider from "../components/AuthProvider";
 
 export default function Layout() {
   return (
-    <CartProvider>
-      <Stack />
-    </CartProvider>
+    <AuthProvider>
+      <CartProvider>
+        <Stack />
+      </CartProvider>
+    </AuthProvider>
   );
 }
