@@ -4,10 +4,184 @@ service cloud.firestore {
 
   match /databases/{database}/documents {
 
-    match /usuarios/{userId} {
-      allow read, write: if request.auth != null
-                         && request.auth.uid == userId;
+    // =========================================================
+    // FUNCIONES DE SEGURIDAD
+    // =========================================================
+
+    function esPropietario(userId) {
+      return request.auth != null
+             && request.auth.uid == userId;
     }
+
+    function tieneDeliveryEnSolicitud() {
+      return request.resource.data.keys().hasAny(["delivery"])
+             &&
+             request.resource.data.delivery.keys().hasAll([
+               "estadoVerificacion",
+               "estado",
+               "activo",
+               "disponible"
+             ]);
+    }
+
+    function deliveryEnSolicitudSegura() {
+      return tieneDeliveryEnSolicitud()
+             &&
+             request.resource.data.delivery.estadoVerificacion
+               == "pendiente"
+             &&
+             request.resource.data.delivery.estado
+               == "en_revision"
+             &&
+             request.resource.data.delivery.activo
+               == false
+             &&
+             request.resource.data.delivery.disponible
+               == false;
+    }
+
+
+    // =========================================================
+    // USUARIOS
+    // =========================================================
+
+    match /usuarios/{userId} {
+
+      // -------------------------------------------------------
+      // LECTURA
+      // -------------------------------------------------------
+
+      allow read: if esPropietario(userId)
+            ||
+            (
+              resource.data.keys().hasAny(["roles"])
+              &&
+              resource.data.roles.Delivery == true
+              &&
+              resource.data.keys().hasAny(["delivery"])
+              &&
+              resource.data.delivery.estadoVerificacion == "aprobado"
+              &&
+              resource.data.delivery.activo == true
+              &&
+              resource.data.delivery.disponible == true
+            );
+
+
+      // -------------------------------------------------------
+      // CREACIÃ“N
+      // -------------------------------------------------------
+      //
+      // El usuario puede crear su propio perfil.
+      //
+      // Si incluye Delivery desde el comienzo, Ãºnicamente
+      // puede crearlo como solicitud pendiente y en revisiÃ³n.
+      //
+
+      allow create: if esPropietario(userId)
+                    &&
+                    (
+                      !request.resource.data.keys().hasAny(["delivery"])
+                      ||
+                      deliveryEnSolicitudSegura()
+                    );
+
+
+      // -------------------------------------------------------
+      // ACTUALIZACIÃ“N
+      // -------------------------------------------------------
+
+      allow update: if esPropietario(userId)
+                    &&
+                    (
+
+                      // -----------------------------------------
+                      // 1. PERFIL NORMAL SIN BLOQUE DELIVERY
+                      // -----------------------------------------
+                      //
+                      // Si el documento resultante no contiene
+                      // Delivery, permitimos actualizar el perfil.
+                      //
+                      !request.resource.data.keys().hasAny(["delivery"])
+
+
+                      ||
+
+
+                      // -----------------------------------------
+                      // 2. CREAR / COMPLETAR SOLICITUD DELIVERY
+                      // -----------------------------------------
+                      //
+                      // Mientras no estÃ© aprobado, el usuario
+                      // puede completar su solicitud, pero jamÃ¡s
+                      // puede activarla.
+                      //
+                      (
+                        (
+                          !resource.data.keys().hasAny(["delivery"])
+                          ||
+                          (
+                            resource.data.delivery.keys().hasAny([
+                              "estadoVerificacion"
+                            ])
+                            &&
+                            resource.data.delivery.estadoVerificacion
+                              == "pendiente"
+                          )
+                          ||
+                          (
+                            resource.data.delivery.keys().hasAny([
+                              "estadoVerificacion"
+                            ])
+                            &&
+                            resource.data.delivery.estadoVerificacion
+                              == "rechazado"
+                          )
+                        )
+                        &&
+                        deliveryEnSolicitudSegura()
+                      )
+
+
+                      ||
+
+
+                      // -----------------------------------------
+                      // 3. DELIVERY YA APROBADO
+                      // -----------------------------------------
+                      //
+                      // Una vez aprobado, el usuario NO puede
+                      // modificar el bloque Delivery.
+                      //
+                      (
+                        resource.data.keys().hasAny(["delivery"])
+                        &&
+                        resource.data.delivery.keys().hasAny([
+                          "estadoVerificacion"
+                        ])
+                        &&
+                        resource.data.delivery.estadoVerificacion
+                          == "aprobado"
+                        &&
+                        request.resource.data.keys().hasAny(["delivery"])
+                        &&
+                        request.resource.data.delivery
+                          == resource.data.delivery
+                      )
+                    );
+
+
+      // -------------------------------------------------------
+      // ELIMINACIÃ“N
+      // -------------------------------------------------------
+
+      allow delete: if false;
+    }
+
+
+    // =========================================================
+    // NEGOCIOS
+    // =========================================================
 
     match /negocios/{negocioId} {
 
@@ -21,6 +195,11 @@ service cloud.firestore {
                             && resource.data.propietarioId
                                == request.auth.uid;
     }
+
+
+    // =========================================================
+    // PRODUCTOS
+    // =========================================================
 
     match /negocios/{negocioId}/productos/{productoId} {
 
@@ -39,19 +218,26 @@ service cloud.firestore {
                                == request.auth.uid;
     }
 
+
+    // =========================================================
+    // PEDIDOS
+    // =========================================================
+
     match /pedidos/{pedidoId} {
 
-      // CLIENTE: puede crear su propio pedido
+      // -------------------------------------------------------
+      // CLIENTE CREA SU PEDIDO
+      // -------------------------------------------------------
+
       allow create: if request.auth != null
                     && request.resource.data.usuarioId
                        == request.auth.uid;
 
 
-      // CLIENTE:
-      // puede leer sus pedidos.
-      //
-      // NEGOCIO:
-      // puede leer pedidos de su propio negocio.
+      // -------------------------------------------------------
+      // LECTURA DE PEDIDOS
+      // -------------------------------------------------------
+
       allow read: if request.auth != null
                   && (
                     resource.data.usuarioId
@@ -69,9 +255,10 @@ service cloud.firestore {
                   );
 
 
-      // NEGOCIO:
-      // solamente el propietario del negocio puede cambiar
-      // el estado de sus pedidos.
+      // -------------------------------------------------------
+      // NEGOCIO CAMBIA ESTADO DEL PEDIDO
+      // -------------------------------------------------------
+
       allow update: if request.auth != null
 
                     && resource.data.negocioId != null
@@ -81,8 +268,6 @@ service cloud.firestore {
                        ).data.propietarioId
                        == request.auth.uid
 
-                    // El negocio solamente puede modificar
-                    // estado y fechaActualizacion.
                     && request.resource.data.diff(resource.data)
                        .affectedKeys()
                        .hasOnly([
@@ -90,7 +275,6 @@ service cloud.firestore {
                          "fechaActualizacion"
                        ])
 
-                    // Transiciones permitidas.
                     && (
 
                       // Pendiente -> aceptado
@@ -133,7 +317,7 @@ service cloud.firestore {
 
                       ||
 
-                      // En camino -> entregado
+                      // En_camino -> entregado
                       (
                         resource.data.estado == "en_camino"
                         && request.resource.data.estado == "entregado"
@@ -141,8 +325,12 @@ service cloud.firestore {
                     );
 
 
-      // No permitimos borrar pedidos.
+      // -------------------------------------------------------
+      // NO SE PUEDEN BORRAR PEDIDOS
+      // -------------------------------------------------------
+
       allow delete: if false;
     }
   }
 }
+
