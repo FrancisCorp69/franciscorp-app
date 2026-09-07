@@ -1,5 +1,4 @@
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-
+﻿import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { router } from "expo-router";
 
 const servicios = [
@@ -7,7 +6,7 @@ const servicios = [
     id: "delivery",
     nombre: "Delivery",
     icono: "🚚",
-    ruta: "/servicios",
+    ruta: "/servicios/delivery",
   },
   {
     id: "expreso",
@@ -129,3 +128,4 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
+

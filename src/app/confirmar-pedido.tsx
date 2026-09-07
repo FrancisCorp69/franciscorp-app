@@ -663,7 +663,7 @@ export default function ConfirmarPedidoScreen() {
             </View>
 
             <Text style={styles.modalDescription}>
-              Agrega información que ayude al repartidor a encontrar tu dirección.
+              Agrega información que ayude al Delivery a encontrar tu dirección.
             </Text>
 
             <TextInput
@@ -1182,3 +1182,4 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 });
+

@@ -1,0 +1,83 @@
+﻿rules_version = '2';
+
+service firebase.storage {
+
+  match /b/{bucket}/o {
+
+    /*
+     * ============================================================
+     * DOCUMENTACIÓN PRIVADA DE DELIVERY
+     * ============================================================
+     *
+     * Estructura:
+     *
+     * delivery_privado/{uid}/identidad/cedula.jpg
+     * delivery_privado/{uid}/identidad/foto_verificacion.jpg
+     * delivery_privado/{uid}/licencia/licencia.jpg
+     * delivery_privado/{uid}/vehiculo/matricula.jpg
+     *
+     * El propietario puede SUBIR sus documentos.
+     *
+     * IMPORTANTE:
+     * El propietario NO puede leer estos documentos.
+     *
+     * El panel administrativo podrá acceder posteriormente
+     * mediante Firebase Admin SDK.
+     */
+
+    match /delivery_privado/{uid}/{documento=**} {
+
+      allow write: if request.auth != null
+                   && request.auth.uid == uid
+                   && request.resource.size < 10 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+
+      allow read: if false;
+    }
+
+
+    /*
+     * ============================================================
+     * FOTOS NORMALES DE PERFIL
+     * ============================================================
+     *
+     * Esta regla permite mantener funcionando las fotos normales
+     * del perfil sin mezclarlas con documentación privada.
+     */
+
+    match /usuarios/{uid}/{archivo=**} {
+
+      allow read, write: if request.auth != null
+                        && request.auth.uid == uid;
+    }
+
+
+    /*
+     * ============================================================
+     * NEGOCIOS
+     * ============================================================
+     *
+     * Se mantiene acceso autenticado para las imágenes utilizadas
+     * actualmente por los negocios/productos.
+     */
+
+    match /negocios/{negocioId}/{archivo=**} {
+
+      allow read: if true;
+
+      allow write: if request.auth != null;
+    }
+
+
+    /*
+     * ============================================================
+     * DENEGAR TODO LO DEMÁS
+     * ============================================================
+     */
+
+    match /{allPaths=**} {
+
+      allow read, write: if false;
+    }
+  }
+}

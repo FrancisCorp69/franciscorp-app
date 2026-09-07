@@ -1,0 +1,1377 @@
+﻿import { MaterialCommunityIcons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
+import { router } from "expo-router";
+import {
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  serverTimestamp,
+  setDoc,
+} from "firebase/firestore";
+import {
+  getDownloadURL,
+  ref,
+  uploadBytes,
+} from "firebase/storage";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+
+import { auth, db, storage } from "../../services/firebase";
+
+type DocumentoTipo =
+  | "cedula"
+  | "licencia"
+  | "matricula"
+  | "foto_verificacion";
+
+type TipoVehiculo = "moto" | "auto" | "bicicleta";
+
+type DocumentoEstado = {
+  cedula: boolean;
+  licencia: boolean;
+  matricula: boolean;
+  fotoVerificacion: boolean;
+};
+
+export default function DeliveryScreen() {
+  const [cargando, setCargando] = useState(true);
+  const [guardando, setGuardando] = useState(false);
+
+  const [nombre, setNombre] = useState("");
+  const [telefono, setTelefono] = useState("");
+  const [ciudad, setCiudad] = useState("");
+
+  const [tipoVehiculo, setTipoVehiculo] =
+    useState<TipoVehiculo>("moto");
+
+  const [marca, setMarca] = useState("");
+  const [modelo, setModelo] = useState("");
+  const [anio, setAnio] = useState("");
+  const [color, setColor] = useState("");
+  const [placa, setPlaca] = useState("");
+
+  const [documentos, setDocumentos] =
+    useState<DocumentoEstado>({
+      cedula: false,
+      licencia: false,
+      matricula: false,
+      fotoVerificacion: false,
+    });
+
+  const [rutas, setRutas] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    cargarDatos();
+  }, []);
+
+  async function cargarDatos() {
+    try {
+      const usuario = auth.currentUser;
+
+      if (!usuario) {
+        router.replace("/login");
+        return;
+      }
+
+      const usuarioRef = doc(db, "usuarios", usuario.uid);
+      const snapshot = await getDoc(usuarioRef);
+
+      if (snapshot.exists()) {
+        const datos = snapshot.data();
+
+        setNombre(datos.nombre || "");
+        setTelefono(datos.telefono || "");
+        setCiudad(datos.ciudad || "");
+
+        if (datos.delivery) {
+          const delivery = datos.delivery;
+
+          setTipoVehiculo(
+            delivery.tipoVehiculo || "moto",
+          );
+
+          setMarca(delivery.marca || "");
+          setModelo(delivery.modelo || "");
+          setAnio(delivery.anio || "");
+          setColor(delivery.color || "");
+          setPlaca(delivery.placa || "");
+
+          if (delivery.documentos) {
+            setDocumentos({
+              cedula:
+                delivery.documentos.cedula?.estado ===
+                "subido",
+
+              licencia:
+                delivery.documentos.licencia?.estado ===
+                "subido",
+
+              matricula:
+                delivery.documentos.matricula?.estado ===
+                "subido",
+
+              fotoVerificacion:
+                delivery.documentos.fotoVerificacion
+                  ?.estado === "subido",
+            });
+
+            setRutas({
+              cedula:
+                delivery.documentos.cedula?.path || "",
+
+              licencia:
+                delivery.documentos.licencia?.path || "",
+
+              matricula:
+                delivery.documentos.matricula?.path || "",
+
+              fotoVerificacion:
+                delivery.documentos.fotoVerificacion
+                  ?.path || "",
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.log("ERROR CARGANDO DELIVERY:", error);
+
+      Alert.alert(
+        "Error",
+        "No se pudo cargar la información del Delivery.",
+      );
+    } finally {
+      setCargando(false);
+    }
+  }
+
+  async function seleccionarDocumento(
+    tipo: DocumentoTipo,
+  ) {
+    try {
+      const permiso =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (!permiso.granted) {
+        Alert.alert(
+          "Permiso necesario",
+          "Necesitamos acceso a tus fotografías.",
+        );
+
+        return;
+      }
+
+      const resultado =
+        await ImagePicker.launchImageLibraryAsync({
+          mediaTypes:
+            ImagePicker.MediaTypeOptions.Images,
+
+          allowsEditing: false,
+          quality: 0.8,
+        });
+
+      if (resultado.canceled) {
+        return;
+      }
+
+      const uri = resultado.assets[0]?.uri;
+
+      if (!uri) {
+        Alert.alert(
+          "Error",
+          "No se encontró la imagen.",
+        );
+
+        return;
+      }
+
+      await subirDocumento(tipo, uri);
+    } catch (error: any) {
+      console.log(
+        "ERROR SELECCIONANDO DOCUMENTO:",
+        error,
+      );
+
+      Alert.alert(
+        "Error",
+        error?.message ||
+          "No se pudo seleccionar el documento.",
+      );
+    }
+  }
+
+  async function tomarFotoVerificacion() {
+    try {
+      const permiso =
+        await ImagePicker.requestCameraPermissionsAsync();
+
+      if (!permiso.granted) {
+        Alert.alert(
+          "Permiso necesario",
+          "Necesitamos acceso a la cámara para realizar la verificación.",
+        );
+
+        return;
+      }
+
+      const resultado =
+        await ImagePicker.launchCameraAsync({
+          allowsEditing: true,
+          aspect: [3, 4],
+          quality: 0.8,
+          cameraType: ImagePicker.CameraType.front,
+        });
+
+      if (resultado.canceled) {
+        return;
+      }
+
+      const uri = resultado.assets[0]?.uri;
+
+      if (!uri) {
+        Alert.alert(
+          "Error",
+          "No se pudo obtener la fotografía.",
+        );
+
+        return;
+      }
+
+      await subirDocumento(
+        "foto_verificacion",
+        uri,
+      );
+    } catch (error: any) {
+      console.log(
+        "ERROR TOMANDO FOTO DE VERIFICACION:",
+        error,
+      );
+
+      Alert.alert(
+        "Error",
+        error?.message ||
+          "No se pudo tomar la fotografía.",
+      );
+    }
+  }
+
+  async function subirDocumento(
+    tipo: DocumentoTipo,
+    uri: string,
+  ) {
+    try {
+      const usuario = auth.currentUser;
+
+      if (!usuario) {
+        Alert.alert(
+          "Sesión",
+          "Tu sesión ha expirado.",
+        );
+
+        return;
+      }
+
+      setGuardando(true);
+
+      const respuesta = await fetch(uri);
+      const blob = await respuesta.blob();
+
+      const nombreArchivo =
+        `${tipo}-${Date.now()}.jpg`;
+
+      let carpeta = "";
+
+      if (tipo === "cedula") {
+        carpeta = "identidad";
+      }
+
+      if (tipo === "foto_verificacion") {
+        carpeta = "identidad";
+      }
+
+      if (tipo === "licencia") {
+        carpeta = "licencia";
+      }
+
+      if (tipo === "matricula") {
+        carpeta = "vehiculo";
+      }
+
+      const ruta =
+        `delivery_privado/${usuario.uid}/${carpeta}/${nombreArchivo}`;
+
+      const referencia = ref(storage, ruta);
+
+      await uploadBytes(
+        referencia,
+        blob,
+        {
+          contentType: "image/jpeg",
+        },
+      );
+
+      /*
+       * NO usamos getDownloadURL().
+       *
+       * Los documentos son privados y las Storage Rules
+       * impiden que el usuario los lea.
+       */
+
+      setRutas((actual) => ({
+        ...actual,
+        [tipo]: ruta,
+      }));
+
+      setDocumentos((actual) => ({
+        ...actual,
+        [tipo === "foto_verificacion"
+          ? "fotoVerificacion"
+          : tipo]: true,
+      }));
+
+      await guardarDocumentoFirestore(
+        usuario.uid,
+        tipo,
+        ruta,
+      );
+
+      Alert.alert(
+        "Documento recibido",
+        "El documento fue enviado correctamente.",
+      );
+    } catch (error: any) {
+      console.log(
+        "ERROR SUBIENDO DOCUMENTO:",
+        error,
+      );
+
+      Alert.alert(
+        "Error",
+        error?.message ||
+          "No se pudo subir el documento.",
+      );
+    } finally {
+      setGuardando(false);
+    }
+  }
+
+  async function guardarDocumentoFirestore(
+    uid: string,
+    tipo: DocumentoTipo,
+    path: string,
+  ) {
+    const usuarioRef = doc(
+      db,
+      "usuarios",
+      uid,
+    );
+
+    const snapshot =
+      await getDoc(usuarioRef);
+
+    const datos =
+      snapshot.exists()
+        ? snapshot.data()
+        : {};
+
+    const deliveryActual =
+      datos.delivery || {};
+
+    const documentosActuales =
+      deliveryActual.documentos || {};
+
+    const clave =
+      tipo === "foto_verificacion"
+        ? "fotoVerificacion"
+        : tipo;
+
+    await setDoc(
+      usuarioRef,
+      {
+        roles: {
+          ...(datos.roles || {}),
+          Delivery: true,
+        },
+
+        delivery: {
+          ...deliveryActual,
+
+          documentos: {
+            ...documentosActuales,
+
+            [clave]: {
+              estado: "subido",
+              path,
+              fechaSubida: serverTimestamp(),
+            },
+          },
+        },
+      },
+      {
+        merge: true,
+      },
+    );
+  }
+
+  async function enviarSolicitud() {
+    try {
+      const usuario = auth.currentUser;
+
+      if (!usuario) {
+        Alert.alert(
+          "Sesión",
+          "Debes iniciar sesión.",
+        );
+
+        return;
+      }
+
+      if (!marca.trim()) {
+        Alert.alert(
+          "Falta información",
+          "Ingresa la marca del vehículo.",
+        );
+
+        return;
+      }
+
+      if (!modelo.trim()) {
+        Alert.alert(
+          "Falta información",
+          "Ingresa el modelo del vehículo.",
+        );
+
+        return;
+      }
+
+      if (!anio.trim()) {
+        Alert.alert(
+          "Falta información",
+          "Ingresa el año del vehículo.",
+        );
+
+        return;
+      }
+
+      if (!color.trim()) {
+        Alert.alert(
+          "Falta información",
+          "Ingresa el color del vehículo.",
+        );
+
+        return;
+      }
+
+      if (
+        tipoVehiculo !== "bicicleta" &&
+        !placa.trim()
+      ) {
+        Alert.alert(
+          "Falta información",
+          "Ingresa la placa del vehículo.",
+        );
+
+        return;
+      }
+
+      if (!documentos.cedula) {
+        Alert.alert(
+          "Documento pendiente",
+          "Debes subir la cédula.",
+        );
+
+        return;
+      }
+
+      if (!documentos.licencia) {
+        Alert.alert(
+          "Documento pendiente",
+          "Debes subir la licencia.",
+        );
+
+        return;
+      }
+
+      if (
+        tipoVehiculo !== "bicicleta" &&
+        !documentos.matricula
+      ) {
+        Alert.alert(
+          "Documento pendiente",
+          "Debes subir la matrícula.",
+        );
+
+        return;
+      }
+
+      if (!documentos.fotoVerificacion) {
+        Alert.alert(
+          "Verificación pendiente",
+          "Debes tomar la fotografía de verificación con la cámara.",
+        );
+
+        return;
+      }
+
+      setGuardando(true);
+
+      const usuarioRef = doc(
+        db,
+        "usuarios",
+        usuario.uid,
+      );
+
+      await setDoc(
+        usuarioRef,
+        {
+          roles: {
+            Cliente: true,
+            Delivery: true,
+          },
+
+          delivery: {
+            activo: false,
+            disponible: false,
+
+            estadoVerificacion:
+              "pendiente",
+
+            estado:
+              "en_revision",
+
+            tipoVehiculo,
+
+            marca: marca.trim(),
+            modelo: modelo.trim(),
+            anio: anio.trim(),
+            color: color.trim(),
+            placa: placa.trim(),
+
+            zonaTrabajo:
+              ciudad.trim(),
+
+            calificacion: 0,
+            totalEntregas: 0,
+
+            ganancias: {
+              diario: 0,
+              semanal: 0,
+              mensual: 0,
+              total: 0,
+            },
+
+            documentos: {
+              cedula: {
+                estado: "subido",
+                path: rutas.cedula || "",
+              },
+
+              licencia: {
+                estado: "subido",
+                path: rutas.licencia || "",
+              },
+
+              matricula: {
+                estado:
+                  tipoVehiculo ===
+                  "bicicleta"
+                    ? "no_aplica"
+                    : "subido",
+
+                path:
+                  rutas.matricula || "",
+              },
+
+              fotoVerificacion: {
+                estado: "subido",
+                path:
+                  rutas.fotoVerificacion ||
+                  "",
+              },
+            },
+
+            solicitud: {
+              estado: "en_revision",
+              fecha:
+                serverTimestamp(),
+            },
+          },
+        },
+        {
+          merge: true,
+        },
+      );
+
+      Alert.alert(
+        "Solicitud enviada",
+        "Tu solicitud para trabajar como Delivery fue enviada a revisión. Podrás comenzar a trabajar cuando FrancisCorp apruebe tu solicitud.",
+        [
+          {
+            text: "Continuar",
+            onPress: () =>
+              router.back(),
+          },
+        ],
+      );
+    } catch (error: any) {
+      console.log(
+        "ERROR ENVIANDO SOLICITUD DELIVERY:",
+        error,
+      );
+
+      Alert.alert(
+        "Error",
+        error?.message ||
+          "No se pudo enviar la solicitud.",
+      );
+    } finally {
+      setGuardando(false);
+    }
+  }
+
+  function DocumentoCard({
+    titulo,
+    descripcion,
+    tipo,
+    subido,
+  }: {
+    titulo: string;
+    descripcion: string;
+    tipo: DocumentoTipo;
+    subido: boolean;
+  }) {
+    return (
+      <View style={styles.documentoCard}>
+        <View style={styles.documentoIcono}>
+          <MaterialCommunityIcons
+            name={
+              subido
+                ? "check-circle"
+                : "file-document-outline"
+            }
+            size={30}
+            color={
+              subido
+                ? "#159447"
+                : "#0066CC"
+            }
+          />
+        </View>
+
+        <View style={styles.documentoInfo}>
+          <Text style={styles.documentoTitulo}>
+            {titulo}
+          </Text>
+
+          <Text style={styles.documentoDescripcion}>
+            {subido
+              ? "Documento recibido correctamente."
+              : descripcion}
+          </Text>
+        </View>
+
+        <TouchableOpacity
+          style={[
+            styles.documentoBoton,
+            subido &&
+              styles.documentoBotonSubido,
+          ]}
+          onPress={() =>
+            seleccionarDocumento(tipo)
+          }
+          disabled={guardando}
+        >
+          <Text
+            style={
+              styles.documentoBotonTexto
+            }
+          >
+            {subido
+              ? "Cambiar"
+              : "Subir"}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  if (cargando) {
+    return (
+      <View style={styles.cargando}>
+        <ActivityIndicator
+          size="large"
+          color="#0066CC"
+        />
+
+        <Text style={styles.cargandoTexto}>
+          Cargando información...
+        </Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+        >
+          <MaterialCommunityIcons
+            name="arrow-left"
+            size={28}
+            color="#FFFFFF"
+          />
+        </TouchableOpacity>
+
+        <View>
+          <Text style={styles.headerTitulo}>
+            Delivery
+          </Text>
+
+          <Text style={styles.headerSubtitulo}>
+            Solicitud y verificación
+          </Text>
+        </View>
+      </View>
+
+      <ScrollView
+        contentContainerStyle={
+          styles.contenido
+        }
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.infoBox}>
+          <MaterialCommunityIcons
+            name="shield-check-outline"
+            size={32}
+            color="#0066CC"
+          />
+
+          <View style={styles.infoTexto}>
+            <Text style={styles.infoTitulo}>
+              Verificación de identidad
+            </Text>
+
+            <Text style={styles.infoDescripcion}>
+              Para trabajar como Delivery,
+              FrancisCorp debe verificar tu
+              identidad y la información de tu
+              vehículo.
+            </Text>
+          </View>
+        </View>
+
+        <Text style={styles.seccionTitulo}>
+          Información personal
+        </Text>
+
+        <View style={styles.card}>
+          <Text style={styles.label}>
+            Nombre completo
+          </Text>
+
+          <TextInput
+            value={nombre}
+            editable={false}
+            style={[
+              styles.input,
+              styles.inputBloqueado,
+            ]}
+          />
+
+          <Text style={styles.label}>
+            Teléfono
+          </Text>
+
+          <TextInput
+            value={telefono}
+            editable={false}
+            style={[
+              styles.input,
+              styles.inputBloqueado,
+            ]}
+          />
+
+          <Text style={styles.label}>
+            Ciudad / zona de trabajo
+          </Text>
+
+          <TextInput
+            value={ciudad}
+            onChangeText={setCiudad}
+            placeholder="Ej. Portoviejo"
+            style={styles.input}
+          />
+        </View>
+
+        <Text style={styles.seccionTitulo}>
+          Vehículo
+        </Text>
+
+        <View style={styles.card}>
+          <Text style={styles.label}>
+            Tipo de vehículo
+          </Text>
+
+          <View style={styles.vehiculos}>
+            {[
+              {
+                valor: "moto",
+                nombre: "Moto",
+                icono: "motorbike",
+              },
+              {
+                valor: "auto",
+                nombre: "Auto",
+                icono: "car",
+              },
+              {
+                valor: "bicicleta",
+                nombre: "Bicicleta",
+                icono: "bike",
+              },
+            ].map((vehiculo) => (
+              <TouchableOpacity
+                key={vehiculo.valor}
+                style={[
+                  styles.vehiculo,
+                  tipoVehiculo ===
+                    vehiculo.valor &&
+                    styles.vehiculoActivo,
+                ]}
+                onPress={() =>
+                  setTipoVehiculo(
+                    vehiculo.valor as TipoVehiculo,
+                  )
+                }
+              >
+                <MaterialCommunityIcons
+                  name={
+                    vehiculo.icono as any
+                  }
+                  size={30}
+                  color={
+                    tipoVehiculo ===
+                    vehiculo.valor
+                      ? "#FFFFFF"
+                      : "#0066CC"
+                  }
+                />
+
+                <Text
+                  style={[
+                    styles.vehiculoTexto,
+                    tipoVehiculo ===
+                      vehiculo.valor &&
+                      styles.vehiculoTextoActivo,
+                  ]}
+                >
+                  {vehiculo.nombre}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <Text style={styles.label}>
+            Marca
+          </Text>
+
+          <TextInput
+            value={marca}
+            onChangeText={setMarca}
+            placeholder="Ej. Honda"
+            style={styles.input}
+          />
+
+          <Text style={styles.label}>
+            Modelo
+          </Text>
+
+          <TextInput
+            value={modelo}
+            onChangeText={setModelo}
+            placeholder="Ej. CB190"
+            style={styles.input}
+          />
+
+          <Text style={styles.label}>
+            Año
+          </Text>
+
+          <TextInput
+            value={anio}
+            onChangeText={setAnio}
+            placeholder="Ej. 2024"
+            keyboardType="numeric"
+            style={styles.input}
+          />
+
+          <Text style={styles.label}>
+            Color
+          </Text>
+
+          <TextInput
+            value={color}
+            onChangeText={setColor}
+            placeholder="Ej. Negro"
+            style={styles.input}
+          />
+
+          {tipoVehiculo !==
+            "bicicleta" && (
+            <>
+              <Text style={styles.label}>
+                Placa
+              </Text>
+
+              <TextInput
+                value={placa}
+                onChangeText={setPlaca}
+                placeholder="Ej. ABC-1234"
+                autoCapitalize="characters"
+                style={styles.input}
+              />
+            </>
+          )}
+        </View>
+
+        <Text style={styles.seccionTitulo}>
+          Documentación
+        </Text>
+
+        <DocumentoCard
+          titulo="Cédula"
+          descripcion="Sube una fotografía clara de tu cédula."
+          tipo="cedula"
+          subido={documentos.cedula}
+        />
+
+        <DocumentoCard
+          titulo="Licencia de conducir"
+          descripcion="Sube una fotografía clara de tu licencia."
+          tipo="licencia"
+          subido={documentos.licencia}
+        />
+
+        {tipoVehiculo !==
+          "bicicleta" && (
+          <DocumentoCard
+            titulo="Matrícula"
+            descripcion="Sube una fotografía clara de la matrícula."
+            tipo="matricula"
+            subido={documentos.matricula}
+          />
+        )}
+
+        <View style={styles.verificacionCard}>
+          <MaterialCommunityIcons
+            name={
+              documentos.fotoVerificacion
+                ? "account-check"
+                : "camera-account"
+            }
+            size={42}
+            color={
+              documentos.fotoVerificacion
+                ? "#159447"
+                : "#0066CC"
+            }
+          />
+
+          <Text
+            style={
+              styles.verificacionTitulo
+            }
+          >
+            Fotografía de verificación
+          </Text>
+
+          <Text
+            style={
+              styles.verificacionDescripcion
+            }
+          >
+            Esta fotografía debe tomarse
+            directamente con la cámara
+            frontal. No se puede seleccionar
+            desde la galería.
+          </Text>
+
+          <TouchableOpacity
+            style={
+              styles.botonCamara
+            }
+            onPress={
+              tomarFotoVerificacion
+            }
+            disabled={guardando}
+          >
+            <MaterialCommunityIcons
+              name="camera"
+              size={22}
+              color="#FFFFFF"
+            />
+
+            <Text
+              style={
+                styles.botonCamaraTexto
+              }
+            >
+              {documentos.fotoVerificacion
+                ? "Tomar nueva fotografía"
+                : "Tomar fotografía"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.seguridad}>
+          <MaterialCommunityIcons
+            name="lock"
+            size={22}
+            color="#555"
+          />
+
+          <Text style={styles.seguridadTexto}>
+            Tus documentos de identidad se
+            almacenan en un área privada de
+            FrancisCorp y no son públicos.
+          </Text>
+        </View>
+
+        <TouchableOpacity
+          style={[
+            styles.botonEnviar,
+            guardando &&
+              styles.botonDeshabilitado,
+          ]}
+          onPress={enviarSolicitud}
+          disabled={guardando}
+        >
+          {guardando ? (
+            <ActivityIndicator
+              color="#FFFFFF"
+            />
+          ) : (
+            <>
+              <MaterialCommunityIcons
+                name="send-check"
+                size={23}
+                color="#FFFFFF"
+              />
+
+              <Text
+                style={
+                  styles.botonEnviarTexto
+                }
+              >
+                Enviar solicitud
+              </Text>
+            </>
+          )}
+        </TouchableOpacity>
+
+        <Text style={styles.notaFinal}>
+          Tu cuenta seguirá siendo una sola
+          cuenta FrancisCorp. El rol Delivery
+          se añadirá a tu usuario existente.
+        </Text>
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#F5F7FA",
+  },
+
+  cargando: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F5F7FA",
+  },
+
+  cargandoTexto: {
+    marginTop: 12,
+    color: "#555",
+    fontSize: 15,
+  },
+
+  header: {
+    backgroundColor: "#0066CC",
+    paddingTop: 55,
+    paddingBottom: 18,
+    paddingHorizontal: 18,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  backButton: {
+    width: 42,
+    height: 42,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 10,
+  },
+
+  headerTitulo: {
+    color: "#FFFFFF",
+    fontSize: 22,
+    fontWeight: "800",
+  },
+
+  headerSubtitulo: {
+    color: "#DCEEFF",
+    marginTop: 2,
+    fontSize: 13,
+  },
+
+  contenido: {
+    padding: 16,
+    paddingBottom: 45,
+  },
+
+  infoBox: {
+    backgroundColor: "#EAF4FF",
+    borderRadius: 16,
+    padding: 16,
+    flexDirection: "row",
+    marginBottom: 22,
+  },
+
+  infoTexto: {
+    flex: 1,
+    marginLeft: 12,
+  },
+
+  infoTitulo: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#123",
+  },
+
+  infoDescripcion: {
+    color: "#555",
+    lineHeight: 20,
+    marginTop: 4,
+  },
+
+  seccionTitulo: {
+    fontSize: 19,
+    fontWeight: "800",
+    color: "#172033",
+    marginTop: 8,
+    marginBottom: 10,
+  },
+
+  card: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 18,
+    elevation: 2,
+  },
+
+  label: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#333",
+    marginBottom: 7,
+    marginTop: 8,
+  },
+
+  input: {
+    backgroundColor: "#F8FAFC",
+    borderWidth: 1,
+    borderColor: "#D9E0E8",
+    borderRadius: 11,
+    paddingHorizontal: 13,
+    paddingVertical: 12,
+    fontSize: 15,
+    color: "#222",
+  },
+
+  inputBloqueado: {
+    color: "#777",
+    backgroundColor: "#EEF1F4",
+  },
+
+  vehiculos: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 10,
+  },
+
+  vehiculo: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 13,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#D6E2F0",
+    backgroundColor: "#F8FBFF",
+  },
+
+  vehiculoActivo: {
+    backgroundColor: "#0066CC",
+    borderColor: "#0066CC",
+  },
+
+  vehiculoTexto: {
+    marginTop: 5,
+    color: "#0066CC",
+    fontWeight: "700",
+  },
+
+  vehiculoTextoActivo: {
+    color: "#FFFFFF",
+  },
+
+  documentoCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    elevation: 1,
+  },
+
+  documentoIcono: {
+    width: 45,
+    alignItems: "center",
+  },
+
+  documentoInfo: {
+    flex: 1,
+    paddingHorizontal: 8,
+  },
+
+  documentoTitulo: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#222",
+  },
+
+  documentoDescripcion: {
+    fontSize: 12,
+    color: "#666",
+    marginTop: 3,
+    lineHeight: 17,
+  },
+
+  documentoBoton: {
+    backgroundColor: "#0066CC",
+    borderRadius: 9,
+    paddingHorizontal: 13,
+    paddingVertical: 9,
+  },
+
+  documentoBotonSubido: {
+    backgroundColor: "#159447",
+  },
+
+  documentoBotonTexto: {
+    color: "#FFFFFF",
+    fontWeight: "800",
+    fontSize: 13,
+  },
+
+  verificacionCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 18,
+    padding: 20,
+    alignItems: "center",
+    marginTop: 10,
+    elevation: 2,
+  },
+
+  verificacionTitulo: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#222",
+    marginTop: 10,
+  },
+
+  verificacionDescripcion: {
+    textAlign: "center",
+    color: "#666",
+    lineHeight: 20,
+    marginTop: 7,
+    marginBottom: 15,
+  },
+
+  botonCamara: {
+    backgroundColor: "#0066CC",
+    borderRadius: 11,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+
+  botonCamaraTexto: {
+    color: "#FFFFFF",
+    fontWeight: "800",
+  },
+
+  seguridad: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#ECEFF3",
+    borderRadius: 12,
+    padding: 13,
+    marginTop: 15,
+  },
+
+  seguridadTexto: {
+    flex: 1,
+    marginLeft: 9,
+    color: "#555",
+    lineHeight: 18,
+    fontSize: 12,
+  },
+
+  botonEnviar: {
+    backgroundColor: "#159447",
+    borderRadius: 14,
+    minHeight: 52,
+    marginTop: 22,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 9,
+  },
+
+  botonDeshabilitado: {
+    opacity: 0.65,
+  },
+
+  botonEnviarTexto: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "800",
+  },
+
+  notaFinal: {
+    textAlign: "center",
+    color: "#777",
+    fontSize: 12,
+    lineHeight: 18,
+    marginTop: 15,
+  },
+});

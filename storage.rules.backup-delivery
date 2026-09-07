@@ -1,0 +1,52 @@
+rules_version = '2';
+
+service firebase.storage {
+
+  match /b/{bucket}/o {
+
+    match /usuarios/{userId}/{allPaths=**} {
+
+      allow read, write: if request.auth != null
+                         && request.auth.uid == userId;
+
+    }
+
+    match /negocios/{negocioId}/productos/{allPaths=**} {
+
+      allow read, write: if request.auth != null
+                         && firestore.get(
+                              /databases/(default)/documents/negocios/$(negocioId)
+                            ).data.propietarioId == request.auth.uid;
+
+    }
+
+    match /negocios/{negocioId}/logo/{allPaths=**} {
+
+      allow read, write: if request.auth != null
+                         && firestore.get(
+                              /databases/(default)/documents/negocios/$(negocioId)
+                            ).data.propietarioId == request.auth.uid;
+
+    }
+
+    match /negocios/{negocioId}/portada/{allPaths=**} {
+
+      allow read, write: if request.auth != null
+                         && firestore.get(
+                              /databases/(default)/documents/negocios/$(negocioId)
+                            ).data.propietarioId == request.auth.uid;
+
+    }
+
+    match /negocios/{negocioId}/galeria/{allPaths=**} {
+
+      allow read, write: if request.auth != null
+                         && firestore.get(
+                              /databases/(default)/documents/negocios/$(negocioId)
+                            ).data.propietarioId == request.auth.uid;
+
+    }
+
+  }
+
+}

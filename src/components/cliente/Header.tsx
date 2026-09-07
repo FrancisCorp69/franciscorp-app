@@ -23,14 +23,24 @@ type Rol = "Delivery" | "Expreso" | "Negocios" | "Flete";
 
 export default function Header({ nombre, fotoPerfil }: HeaderProps) {
   const [menuAbierto, setMenuAbierto] = useState(false);
-
   const { totalItems } = useCart();
 
-  // Rol que actualmente está utilizando el usuario
   const [rolActivo, setRolActivo] = useState<Rol | null>(null);
 
   const seleccionarRol = (rol: Rol) => {
     setRolActivo(rol);
+
+    if (rol === "Delivery") {
+      setMenuAbierto(false);
+      router.push("/delivery" as any);
+      return;
+    }
+
+    if (rol === "Negocios") {
+      setMenuAbierto(false);
+      router.push("/rol-negocios");
+      return;
+    }
   };
 
   return (
@@ -47,7 +57,6 @@ export default function Header({ nombre, fotoPerfil }: HeaderProps) {
 
         <View style={styles.textos}>
           <Text style={styles.saludo}>Hola, {nombre} 👋</Text>
-
           <Text style={styles.subtitulo}>Bienvenido a FrancisCorp</Text>
         </View>
 
@@ -117,7 +126,6 @@ export default function Header({ nombre, fotoPerfil }: HeaderProps) {
 
                   <View style={styles.panelDatos}>
                     <Text style={styles.panelNombre}>{nombre}</Text>
-
                     <Text style={styles.panelSubtitulo}>Mi cuenta</Text>
                   </View>
                 </View>
@@ -145,13 +153,12 @@ export default function Header({ nombre, fotoPerfil }: HeaderProps) {
                 <Text style={styles.opcionTexto}>Mi perfil</Text>
               </TouchableOpacity>
 
-              {/* ================= SEPARADOR ================= */}
               <View style={styles.separador} />
 
               {/* ================= ROLES ================= */}
               <Text style={styles.tituloSeccion}>ROLES</Text>
 
-              {/* DELIVERY */}
+              {/* ================= DELIVERY ================= */}
               <TouchableOpacity
                 style={styles.rol}
                 activeOpacity={0.7}
@@ -170,7 +177,7 @@ export default function Header({ nombre, fotoPerfil }: HeaderProps) {
                 )}
               </TouchableOpacity>
 
-              {/* EXPRESO */}
+              {/* ================= EXPRESO ================= */}
               <TouchableOpacity
                 style={styles.rol}
                 activeOpacity={0.7}
@@ -189,15 +196,11 @@ export default function Header({ nombre, fotoPerfil }: HeaderProps) {
                 )}
               </TouchableOpacity>
 
-              {/* NEGOCIOS */}
+              {/* ================= NEGOCIOS ================= */}
               <TouchableOpacity
                 style={styles.rol}
                 activeOpacity={0.7}
-                onPress={() => {
-                  seleccionarRol("Negocios");
-                  setMenuAbierto(false);
-                  router.push("/rol-negocios");
-                }}
+                onPress={() => seleccionarRol("Negocios")}
               >
                 <MaterialCommunityIcons
                   name="storefront-outline"
@@ -212,7 +215,7 @@ export default function Header({ nombre, fotoPerfil }: HeaderProps) {
                 )}
               </TouchableOpacity>
 
-              {/* FLETE */}
+              {/* ================= FLETE ================= */}
               <TouchableOpacity
                 style={styles.rol}
                 activeOpacity={0.7}
@@ -231,7 +234,6 @@ export default function Header({ nombre, fotoPerfil }: HeaderProps) {
                 )}
               </TouchableOpacity>
 
-              {/* ================= SEPARADOR ================= */}
               <View style={styles.separador} />
 
               {/* ================= BILLETERA ================= */}
@@ -264,7 +266,6 @@ export default function Header({ nombre, fotoPerfil }: HeaderProps) {
                 <Text style={styles.opcionTexto}>FranciCoins</Text>
               </TouchableOpacity>
 
-              {/* ================= SEPARADOR ================= */}
               <View style={styles.separador} />
 
               {/* ================= HISTORIAL ================= */}
@@ -282,7 +283,6 @@ export default function Header({ nombre, fotoPerfil }: HeaderProps) {
                 <Text style={styles.opcionTexto}>Historial</Text>
               </TouchableOpacity>
 
-              {/* ================= SEPARADOR ================= */}
               <View style={styles.separador} />
 
               {/* ================= CONFIGURACIÓN ================= */}
@@ -319,7 +319,6 @@ export default function Header({ nombre, fotoPerfil }: HeaderProps) {
                 </Text>
               </TouchableOpacity>
 
-              {/* ================= SEPARADOR ================= */}
               <View style={styles.separador} />
 
               {/* ================= CERRAR SESIÓN ================= */}
@@ -350,8 +349,6 @@ export default function Header({ nombre, fotoPerfil }: HeaderProps) {
 }
 
 const styles = StyleSheet.create({
-  /* ================= HEADER ================= */
-
   container: {
     marginTop: 55,
     paddingHorizontal: 20,
@@ -415,8 +412,6 @@ const styles = StyleSheet.create({
     borderColor: "#0066CC",
   },
 
-  /* ================= MODAL ================= */
-
   modalContainer: {
     flex: 1,
     flexDirection: "row",
@@ -426,8 +421,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.35)",
   },
-
-  /* ================= PANEL ================= */
 
   panel: {
     width: "78%",
@@ -445,8 +438,6 @@ const styles = StyleSheet.create({
   panelContenido: {
     paddingBottom: 30,
   },
-
-  /* ================= CABECERA ================= */
 
   panelHeader: {
     paddingTop: 55,
@@ -490,8 +481,6 @@ const styles = StyleSheet.create({
     color: "#777",
   },
 
-  /* ================= OPCIONES ================= */
-
   opcionPrincipal: {
     flexDirection: "row",
     alignItems: "center",
@@ -512,8 +501,6 @@ const styles = StyleSheet.create({
     color: "#333",
   },
 
-  /* ================= SECCIONES ================= */
-
   separador: {
     height: 1,
     backgroundColor: "#E5E5E5",
@@ -530,8 +517,6 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
     letterSpacing: 1,
   },
-
-  /* ================= ROLES ================= */
 
   rol: {
     flexDirection: "row",
@@ -554,9 +539,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#F2B705",
   },
 
-  /* ================= CERRAR SESIÓN ================= */
-
   cerrarSesionTexto: {
     color: "#D32F2F",
   },
 });
+
+
