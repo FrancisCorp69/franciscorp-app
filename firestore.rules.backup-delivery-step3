@@ -13,11 +13,6 @@ service cloud.firestore {
              && request.auth.uid == userId;
     }
 
-    function isAdmin() {
-      return request.auth != null
-             && request.auth.token.admin == true;
-    }
-
     function tieneDeliveryEnSolicitud() {
       return request.resource.data.keys().hasAny(["delivery"])
              &&
@@ -56,9 +51,7 @@ service cloud.firestore {
       // LECTURA
       // -------------------------------------------------------
 
-      allow read: if isAdmin()
-            ||
-            esPropietario(userId)
+      allow read: if esPropietario(userId)
             ||
             (
               resource.data.keys().hasAny(["roles"])
@@ -76,13 +69,13 @@ service cloud.firestore {
 
 
       // -------------------------------------------------------
-      // CREACIÃƒÆ’Ã¢â‚¬Å“N
+      // CREACIÃ“N
       // -------------------------------------------------------
       //
       // El usuario puede crear su propio perfil.
       //
-      // Si incluye Delivery desde el comienzo, ÃƒÆ’Ã‚Âºnicamente
-      // puede crearlo como solicitud pendiente y en revisiÃƒÆ’Ã‚Â³n.
+      // Si incluye Delivery desde el comienzo, Ãºnicamente
+      // puede crearlo como solicitud pendiente y en revisiÃ³n.
       //
 
       allow create: if esPropietario(userId)
@@ -95,7 +88,7 @@ service cloud.firestore {
 
 
       // -------------------------------------------------------
-      // ACTUALIZACIÃƒÆ’Ã¢â‚¬Å“N
+      // ACTUALIZACIÃ“N
       // -------------------------------------------------------
 
       allow update: if esPropietario(userId)
@@ -119,17 +112,13 @@ service cloud.firestore {
                       // 2. CREAR / COMPLETAR SOLICITUD DELIVERY
                       // -----------------------------------------
                       //
-                      // Mientras no estÃƒÆ’Ã‚Â© aprobado, el usuario
-                      // puede completar su solicitud, pero jamÃƒÆ’Ã‚Â¡s
+                      // Mientras no estÃ© aprobado, el usuario
+                      // puede completar su solicitud, pero jamÃ¡s
                       // puede activarla.
                       //
                       (
                         (
                           !resource.data.keys().hasAny(["delivery"])
-                          ||
-                          !resource.data.delivery.keys().hasAny([
-                            "estadoVerificacion"
-                          ])
                           ||
                           (
                             resource.data.delivery.keys().hasAny([
@@ -183,7 +172,7 @@ service cloud.firestore {
 
 
       // -------------------------------------------------------
-      // ELIMINACIÃƒÆ’Ã¢â‚¬Å“N
+      // ELIMINACIÃ“N
       // -------------------------------------------------------
 
       allow delete: if false;
@@ -342,157 +331,6 @@ service cloud.firestore {
 
       allow delete: if false;
     }
-
-    match /solicitudes_delivery/{solicitudId} {
-
-      function solicitudValidaAlCrear() {
-        return request.auth != null
-               &&
-               request.resource.data.clienteId == request.auth.uid
-               &&
-               request.resource.data.deliveryId != request.auth.uid
-               &&
-               request.resource.data.estado == "solicitado"
-               &&
-               request.resource.data.keys().hasAll([
-                 "clienteId",
-                 "deliveryId",
-                 "estado",
-                 "origen",
-                 "destino",
-                 "descripcion",
-                 "precioEstimado",
-                 "fechaCreacion",
-                 "fechaActualizacion"
-               ])
-               &&
-               exists(
-                 /databases/$(database)/documents/usuarios/$(request.resource.data.deliveryId)
-               )
-               &&
-               get(
-                 /databases/$(database)/documents/usuarios/$(request.resource.data.deliveryId)
-               ).data.roles.Delivery == true
-               &&
-               get(
-                 /databases/$(database)/documents/usuarios/$(request.resource.data.deliveryId)
-               ).data.delivery.estadoVerificacion == "aprobado"
-               &&
-               get(
-                 /databases/$(database)/documents/usuarios/$(request.resource.data.deliveryId)
-               ).data.delivery.activo == true
-               &&
-               get(
-                 /databases/$(database)/documents/usuarios/$(request.resource.data.deliveryId)
-               ).data.delivery.disponible == true;
-      }
-
-      function transicionDeliveryValida() {
-        return
-          (
-            resource.data.estado == "solicitado"
-            &&
-            (
-              request.resource.data.estado == "aceptado"
-              ||
-              request.resource.data.estado == "rechazado"
-            )
-          )
-          ||
-          (
-            resource.data.estado == "aceptado"
-            &&
-            request.resource.data.estado == "en_camino_recogida"
-          )
-          ||
-          (
-            resource.data.estado == "en_camino_recogida"
-            &&
-            request.resource.data.estado == "recogido"
-          )
-          ||
-          (
-            resource.data.estado == "recogido"
-            &&
-            request.resource.data.estado == "en_camino_destino"
-          )
-          ||
-          (
-            resource.data.estado == "en_camino_destino"
-            &&
-            request.resource.data.estado == "entregado"
-          )
-          ||
-          (
-            resource.data.estado == "entregado"
-            &&
-            request.resource.data.estado == "completado"
-          );
-      }
-
-      allow create: if solicitudValidaAlCrear();
-
-      allow read: if request.auth != null
-                    &&
-                    (
-                      resource.data.clienteId == request.auth.uid
-                      ||
-                      resource.data.deliveryId == request.auth.uid
-                    );
-
-      allow update: if request.auth != null
-                    &&
-                    (
-                      (
-                        resource.data.deliveryId == request.auth.uid
-                        &&
-                        request.resource.data.deliveryId == resource.data.deliveryId
-                        &&
-                        request.resource.data.clienteId == resource.data.clienteId
-                        &&
-                        request.resource.data.diff(resource.data)
-                          .affectedKeys()
-                          .hasOnly([
-                            "estado",
-                            "fechaActualizacion"
-                          ])
-                        &&
-                        transicionDeliveryValida()
-                      )
-                      ||
-                      (
-                        resource.data.clienteId == request.auth.uid
-                        &&
-                        (
-                          resource.data.estado == "entregado"
-                          ||
-                          resource.data.estado == "completado"
-                        )
-                        &&
-                        resource.data.calificacion == null
-                        &&
-                        request.resource.data.keys().hasAll([
-                          "calificacion",
-                          "comentarioCalificacion"
-                        ])
-                        &&
-                        request.resource.data.calificacion >= 1
-                        &&
-                        request.resource.data.calificacion <= 5
-                        &&
-                        request.resource.data.diff(resource.data)
-                          .affectedKeys()
-                          .hasOnly([
-                            "calificacion",
-                            "comentarioCalificacion",
-                            "fechaActualizacion"
-                          ])
-                      )
-                    );
-
-      allow delete: if false;
-    }
-
   }
 }
 

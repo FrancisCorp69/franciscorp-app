@@ -127,10 +127,6 @@ service cloud.firestore {
                         (
                           !resource.data.keys().hasAny(["delivery"])
                           ||
-                          !resource.data.delivery.keys().hasAny([
-                            "estadoVerificacion"
-                          ])
-                          ||
                           (
                             resource.data.delivery.keys().hasAny([
                               "estadoVerificacion"

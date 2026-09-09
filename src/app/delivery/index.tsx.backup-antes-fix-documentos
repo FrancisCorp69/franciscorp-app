@@ -1,6 +1,5 @@
 ﻿import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import * as FileSystem from "expo-file-system/legacy";
 import { router } from "expo-router";
 import {
   addDoc,
@@ -13,7 +12,7 @@ import {
 import {
   getDownloadURL,
   ref,
-  uploadString,
+  uploadBytes,
 } from "firebase/storage";
 import { useEffect, useState } from "react";
 import {
@@ -283,7 +282,8 @@ export default function DeliveryScreen() {
 
       setGuardando(true);
 
-      const base64 = await FileSystem.readAsStringAsync(uri, { encoding: "base64" });
+      const respuesta = await fetch(uri);
+      const blob = await respuesta.blob();
 
       const nombreArchivo =
         `${tipo}-${Date.now()}.jpg`;
@@ -311,16 +311,13 @@ export default function DeliveryScreen() {
 
       const referencia = ref(storage, ruta);
 
-      console.log("=== DEBUG STORAGE DELIVERY ===");
-      console.log("UID:", usuario.uid);
-      console.log("RUTA:", ruta);
-      console.log("CONTENT TYPE ENVIADO:", "image/jpeg");
-
-      await usuario.getIdToken(true);
-
-      console.log("TOKEN DE AUTENTICACION REFRESCADO");
-
-      await uploadString(referencia, base64, "base64", { contentType: "image/jpeg" });
+      await uploadBytes(
+        referencia,
+        blob,
+        {
+          contentType: "image/jpeg",
+        },
+      );
 
       /*
        * NO usamos getDownloadURL().
@@ -406,17 +403,9 @@ export default function DeliveryScreen() {
         },
 
         delivery: {
-      ...deliveryActual,
+          ...deliveryActual,
 
-      estadoVerificacion: deliveryActual.estadoVerificacion || "pendiente",
-
-      estado: deliveryActual.estado || "en_revision",
-
-      activo: false,
-
-      disponible: false,
-
-      documentos: {
+          documentos: {
             ...documentosActuales,
 
             [clave]: {
@@ -1453,18 +1442,4 @@ const styles = StyleSheet.create({
     marginTop: 15,
   },
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

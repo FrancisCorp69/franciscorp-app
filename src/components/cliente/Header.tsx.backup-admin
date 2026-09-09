@@ -12,8 +12,7 @@ import {
   View,
 } from "react-native";
 
-import { useCart } from "../../context/CartContext";
-import { auth } from "../../services/firebase";
+import { useCart } from "../../context/CartContext";`r`nimport { auth } from "../../services/firebase";`r`nimport { activarAdministradorInicial } from "../../services/activarAdminInicial";
 
 type HeaderProps = {
   nombre: string;
@@ -26,28 +25,9 @@ export default function Header({ nombre, fotoPerfil }: HeaderProps) {
   const [menuAbierto, setMenuAbierto] = useState(false);
   const { totalItems } = useCart();
 
-  const [rolActivo, setRolActivo] = useState<Rol | null>(null);
-  const [esAdministrador, setEsAdministrador] = useState(false);
+  const [rolActivo, setRolActivo] = useState<Rol | null>(null);`r`n  const [esAdministradorInicial, setEsAdministradorInicial] = useState(false);`r`n`r`n  useEffect(() => {`r`n    const usuario = auth.currentUser;`r`n`r`n    const autorizado =`r`n      usuario?.uid === "cjkFpObYrEZwhDU0kBo6Oz6YdzJ2" &&`r`n      usuario?.email === "admdudu@gmail.com";`r`n`r`n    setEsAdministradorInicial(autorizado);`r`n  }, []);`r`n`r`n  const activarAdmin = async () => {`r`n    try {`r`n      await activarAdministradorInicial();`r`n      await auth.currentUser?.getIdTokenResult(true);`r`n`r`n      setEsAdministradorInicial(false);`r`n`r`n      alert("Administrador activado correctamente.");`r`n    } catch (error) {`r`n      console.error("ERROR ACTIVANDO ADMINISTRADOR:", error);`r`n      alert("No se pudo activar el administrador.");`r`n    }`r`n  };
 
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (usuario) => {
-      if (!usuario) {
-        setEsAdministrador(false);
-        return;
-      }
-
-      try {
-        const tokenResult = await usuario.getIdTokenResult();
-        setEsAdministrador(tokenResult.claims.admin === true);
-      } catch (error) {
-        console.error("ERROR VERIFICANDO ADMIN:", error);
-        setEsAdministrador(false);
-      }
-    });
-
-    return unsubscribe;
-  }, []);
-const seleccionarRol = (rol: Rol) => {
+  const seleccionarRol = (rol: Rol) => {
     setRolActivo(rol);
 
     if (rol === "Delivery") {
@@ -80,51 +60,26 @@ const seleccionarRol = (rol: Rol) => {
           <Text style={styles.subtitulo}>Bienvenido a FrancisCorp</Text>
         </View>
 
-        {/* ================= ACTIVAR ADMINISTRADOR ================= */}
+        {/* ================= ACTIVAR ADMINISTRADOR ================= */}`r`n        {esAdministradorInicial && (`r`n          <TouchableOpacity`r`n            style={styles.botonAdminInicial}`r`n            activeOpacity={0.8}`r`n            onPress={activarAdmin}`r`n          >`r`n            <MaterialCommunityIcons`r`n              name="shield-account-outline"`r`n              size={24}`r`n              color="#FFFFFF"`r`n            />`r`n            <Text style={styles.botonAdminInicialTexto}>`r`n              Activar administrador`r`n            </Text>`r`n          </TouchableOpacity>`r`n        )}`r`n`r`n        {/* ================= CARRITO ================= */}
+        <TouchableOpacity
+          style={styles.carrito}
+          activeOpacity={0.7}
+          onPress={() => router.push("/carrito")}
+        >
+          <MaterialCommunityIcons
+            name="cart-outline"
+            size={29}
+            color="#0066CC"
+          />
 
-        {/* ================= ADMIN + CARRITO ================= */}
-        <View style={styles.carritoColumna}>
-
-          
-          {esAdministrador && (
-            <TouchableOpacity
-              style={styles.botonAdministrador}
-              activeOpacity={0.8}
-              onPress={() => router.push("/administrador" as any)}
-            >
-              <MaterialCommunityIcons
-                name="shield-account-outline"
-                size={20}
-                color="#FFFFFF"
-              />
-              <Text style={styles.botonAdministradorTexto}>
-                ADMIN
+          {totalItems > 0 && (
+            <View style={styles.carritoBadge}>
+              <Text style={styles.carritoBadgeText}>
+                {totalItems > 99 ? "99+" : totalItems}
               </Text>
-            </TouchableOpacity>
+            </View>
           )}
-
-{/* ================= CARRITO ================= */}
-          <TouchableOpacity
-            style={styles.carrito}
-            activeOpacity={0.7}
-            onPress={() => router.push("/carrito")}
-          >
-            <MaterialCommunityIcons
-              name="cart-outline"
-              size={29}
-              color="#0066CC"
-            />
-
-            {totalItems > 0 && (
-              <View style={styles.carritoBadge}>
-                <Text style={styles.carritoBadgeText}>
-                  {totalItems > 99 ? "99+" : totalItems}
-                </Text>
-              </View>
-            )}
-          </TouchableOpacity>
-
-        </View>
+        </TouchableOpacity>
 
         {/* ================= FOTO ================= */}
         <Image
@@ -421,49 +376,7 @@ const styles = StyleSheet.create({
     color: "#0066CC",
   },
 
-  botonAdminInicial: {
-    backgroundColor: "#0066CC",
-    borderRadius: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 9,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 8,
-  },
-
-  botonAdminInicialTexto: {
-    color: "#FFFFFF",
-    fontSize: 9,
-    fontWeight: "800",
-    marginTop: 2,
-  },  botonAdministrador: {
-    backgroundColor: "#0066CC",
-    borderRadius: 10,
-    paddingHorizontal: 8,
-    paddingVertical: 5,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 3,
-  },
-
-  botonAdministradorTexto: {
-    color: "#FFFFFF",
-    fontSize: 8,
-    fontWeight: "800",
-    marginTop: 1,
-  },
-
-
-
-  carritoColumna: {
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 5,
-  },
-
-
-
-  carrito: {
+  botonAdminInicial: {`r`n    backgroundColor: "#0066CC",`r`n    borderRadius: 12,`r`n    paddingHorizontal: 10,`r`n    paddingVertical: 9,`r`n    alignItems: "center",`r`n    justifyContent: "center",`r`n    marginRight: 8,`r`n  },`r`n`r`n  botonAdminInicialTexto: {`r`n    color: "#FFFFFF",`r`n    fontSize: 9,`r`n    fontWeight: "800",`r`n    marginTop: 2,`r`n  },`r`n`r`n  carrito: {
     width: 42,
     height: 50,
     alignItems: "center",
@@ -630,12 +543,6 @@ const styles = StyleSheet.create({
     color: "#D32F2F",
   },
 });
-
-
-
-
-
-
 
 
 

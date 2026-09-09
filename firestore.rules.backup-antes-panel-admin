@@ -13,11 +13,6 @@ service cloud.firestore {
              && request.auth.uid == userId;
     }
 
-    function isAdmin() {
-      return request.auth != null
-             && request.auth.token.admin == true;
-    }
-
     function tieneDeliveryEnSolicitud() {
       return request.resource.data.keys().hasAny(["delivery"])
              &&
@@ -56,9 +51,7 @@ service cloud.firestore {
       // LECTURA
       // -------------------------------------------------------
 
-      allow read: if isAdmin()
-            ||
-            esPropietario(userId)
+      allow read: if esPropietario(userId)
             ||
             (
               resource.data.keys().hasAny(["roles"])
@@ -76,13 +69,13 @@ service cloud.firestore {
 
 
       // -------------------------------------------------------
-      // CREACIÃƒÆ’Ã¢â‚¬Å“N
+      // CREACIÃƒâ€œN
       // -------------------------------------------------------
       //
       // El usuario puede crear su propio perfil.
       //
-      // Si incluye Delivery desde el comienzo, ÃƒÆ’Ã‚Âºnicamente
-      // puede crearlo como solicitud pendiente y en revisiÃƒÆ’Ã‚Â³n.
+      // Si incluye Delivery desde el comienzo, ÃƒÂºnicamente
+      // puede crearlo como solicitud pendiente y en revisiÃƒÂ³n.
       //
 
       allow create: if esPropietario(userId)
@@ -95,7 +88,7 @@ service cloud.firestore {
 
 
       // -------------------------------------------------------
-      // ACTUALIZACIÃƒÆ’Ã¢â‚¬Å“N
+      // ACTUALIZACIÃƒâ€œN
       // -------------------------------------------------------
 
       allow update: if esPropietario(userId)
@@ -119,17 +112,13 @@ service cloud.firestore {
                       // 2. CREAR / COMPLETAR SOLICITUD DELIVERY
                       // -----------------------------------------
                       //
-                      // Mientras no estÃƒÆ’Ã‚Â© aprobado, el usuario
-                      // puede completar su solicitud, pero jamÃƒÆ’Ã‚Â¡s
+                      // Mientras no estÃƒÂ© aprobado, el usuario
+                      // puede completar su solicitud, pero jamÃƒÂ¡s
                       // puede activarla.
                       //
                       (
                         (
                           !resource.data.keys().hasAny(["delivery"])
-                          ||
-                          !resource.data.delivery.keys().hasAny([
-                            "estadoVerificacion"
-                          ])
                           ||
                           (
                             resource.data.delivery.keys().hasAny([
@@ -183,7 +172,7 @@ service cloud.firestore {
 
 
       // -------------------------------------------------------
-      // ELIMINACIÃƒÆ’Ã¢â‚¬Å“N
+      // ELIMINACIÃƒâ€œN
       // -------------------------------------------------------
 
       allow delete: if false;
@@ -495,4 +484,3 @@ service cloud.firestore {
 
   }
 }
-

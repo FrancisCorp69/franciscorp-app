@@ -1,6 +1,5 @@
 ﻿import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import * as FileSystem from "expo-file-system/legacy";
 import { router } from "expo-router";
 import {
   addDoc,
@@ -13,7 +12,7 @@ import {
 import {
   getDownloadURL,
   ref,
-  uploadString,
+  uploadBytes,
 } from "firebase/storage";
 import { useEffect, useState } from "react";
 import {
@@ -283,7 +282,8 @@ export default function DeliveryScreen() {
 
       setGuardando(true);
 
-      const base64 = await FileSystem.readAsStringAsync(uri, { encoding: "base64" });
+      const respuesta = await fetch(uri);
+      const blob = await respuesta.blob();
 
       const nombreArchivo =
         `${tipo}-${Date.now()}.jpg`;
@@ -311,16 +311,13 @@ export default function DeliveryScreen() {
 
       const referencia = ref(storage, ruta);
 
-      console.log("=== DEBUG STORAGE DELIVERY ===");
-      console.log("UID:", usuario.uid);
-      console.log("RUTA:", ruta);
-      console.log("CONTENT TYPE ENVIADO:", "image/jpeg");
-
-      await usuario.getIdToken(true);
-
-      console.log("TOKEN DE AUTENTICACION REFRESCADO");
-
-      await uploadString(referencia, base64, "base64", { contentType: "image/jpeg" });
+      await uploadBytes(
+        referencia,
+        blob,
+        {
+          contentType: "image/jpeg",
+        },
+      );
 
       /*
        * NO usamos getDownloadURL().
@@ -406,17 +403,9 @@ export default function DeliveryScreen() {
         },
 
         delivery: {
-      ...deliveryActual,
+          ...deliveryActual,
 
-      estadoVerificacion: deliveryActual.estadoVerificacion || "pendiente",
-
-      estado: deliveryActual.estado || "en_revision",
-
-      activo: false,
-
-      disponible: false,
-
-      documentos: {
+          documentos: {
             ...documentosActuales,
 
             [clave]: {
@@ -761,37 +750,6 @@ export default function DeliveryScreen() {
         }
         showsVerticalScrollIndicator={false}
       >
-        <TouchableOpacity
-          style={styles.botonSolicitudes}
-          onPress={() =>
-            router.push("/delivery/solicitudes")
-          }
-        >
-          <View style={styles.botonSolicitudesIcono}>
-            <MaterialCommunityIcons
-              name="clipboard-text-outline"
-              size={28}
-              color="#0066CC"
-            />
-          </View>
-
-          <View style={styles.botonSolicitudesInfo}>
-            <Text style={styles.botonSolicitudesTitulo}>
-              Solicitudes de Delivery
-            </Text>
-
-            <Text style={styles.botonSolicitudesTexto}>
-              Revisa y acepta nuevos servicios.
-            </Text>
-          </View>
-
-          <MaterialCommunityIcons
-            name="chevron-right"
-            size={28}
-            color="#0066CC"
-          />
-        </TouchableOpacity>
-
         <View style={styles.infoBox}>
           <MaterialCommunityIcons
             name="shield-check-outline"
@@ -1185,42 +1143,6 @@ const styles = StyleSheet.create({
     paddingBottom: 45,
   },
 
-  botonSolicitudes: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    padding: 15,
-    marginBottom: 18,
-    flexDirection: "row",
-    alignItems: "center",
-    elevation: 2,
-  },
-
-  botonSolicitudesIcono: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: "#EAF4FF",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  botonSolicitudesInfo: {
-    flex: 1,
-    marginLeft: 12,
-  },
-
-  botonSolicitudesTitulo: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: "#172033",
-  },
-
-  botonSolicitudesTexto: {
-    fontSize: 13,
-    color: "#666",
-    marginTop: 3,
-  },
-
   infoBox: {
     backgroundColor: "#EAF4FF",
     borderRadius: 16,
@@ -1453,18 +1375,3 @@ const styles = StyleSheet.create({
     marginTop: 15,
   },
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
