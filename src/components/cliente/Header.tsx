@@ -1,4 +1,4 @@
-ï»¿import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -37,7 +37,7 @@ export default function Header({ nombre, fotoPerfil }: HeaderProps) {
       }
 
       try {
-        const tokenResult = await usuario.getIdTokenResult();
+        const tokenResult = await usuario.getIdTokenResult(true);
         setEsAdministrador(tokenResult.claims.admin === true);
       } catch (error) {
         console.error("ERROR VERIFICANDO ADMIN:", error);
@@ -76,7 +76,7 @@ const seleccionarRol = (rol: Rol) => {
         </TouchableOpacity>
 
         <View style={styles.textos}>
-          <Text style={styles.saludo}>Hola, {nombre} ðŸ‘‹</Text>
+          <Text style={styles.saludo}>Hola, {nombre} ??</Text>
           <Text style={styles.subtitulo}>Bienvenido a FrancisCorp</Text>
         </View>
 
@@ -137,7 +137,7 @@ const seleccionarRol = (rol: Rol) => {
         />
       </View>
 
-      {/* ================= MENÃš LATERAL ================= */}
+      {/* ================= MENÚ LATERAL ================= */}
       <Modal
         visible={menuAbierto}
         transparent
@@ -330,7 +330,7 @@ const seleccionarRol = (rol: Rol) => {
 
               <View style={styles.separador} />
 
-              {/* ================= CONFIGURACIÃ“N ================= */}
+              {/* ================= CONFIGURACIÓN ================= */}
               <TouchableOpacity
                 style={styles.opcion}
                 activeOpacity={0.7}
@@ -343,7 +343,7 @@ const seleccionarRol = (rol: Rol) => {
                 />
 
                 <Text style={styles.opcionTexto}>
-                  ConfiguraciÃ³n y privacidad
+                  Configuración y privacidad
                 </Text>
               </TouchableOpacity>
 
@@ -360,13 +360,13 @@ const seleccionarRol = (rol: Rol) => {
                 />
 
                 <Text style={styles.opcionTexto}>
-                  Ayuda y soporte tÃ©cnico
+                  Ayuda y soporte técnico
                 </Text>
               </TouchableOpacity>
 
               <View style={styles.separador} />
 
-              {/* ================= CERRAR SESIÃ“N ================= */}
+              {/* ================= CERRAR SESIÓN ================= */}
               <TouchableOpacity
                 style={styles.opcionPrincipal}
                 activeOpacity={0.7}
@@ -382,7 +382,7 @@ const seleccionarRol = (rol: Rol) => {
                 />
 
                 <Text style={[styles.opcionTexto, styles.cerrarSesionTexto]}>
-                  Cerrar sesiÃ³n
+                  Cerrar sesión
                 </Text>
               </TouchableOpacity>
             </ScrollView>
@@ -630,6 +630,7 @@ const styles = StyleSheet.create({
     color: "#D32F2F",
   },
 });
+
 
 
 

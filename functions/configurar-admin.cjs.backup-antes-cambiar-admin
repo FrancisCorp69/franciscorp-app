@@ -1,11 +1,11 @@
-const { initializeApp } = require("firebase-admin/app");
+﻿const { initializeApp } = require("firebase-admin/app");
 const { getAuth } = require("firebase-admin/auth");
 
 initializeApp({
   projectId: "franciscorp-app",
 });
 
-const UID_ADMIN = "XSmjBBNuycN7lSDiPQfSs2yDMx23";
+const UID_ADMIN = "cjkFpObYrEZwhDU0kBo6Oz6YdzJ2";
 
 async function main() {
   const usuario = await getAuth().getUser(UID_ADMIN);
@@ -24,7 +24,7 @@ async function main() {
   const actualizado = await getAuth().getUser(UID_ADMIN);
 
   console.log("");
-  console.log("? ADMINISTRADOR CONFIGURADO");
+  console.log("✅ ADMINISTRADOR CONFIGURADO");
   console.log("Email:", actualizado.email);
   console.log("UID:", actualizado.uid);
   console.log("Claim admin:", actualizado.customClaims?.admin);
@@ -36,6 +36,6 @@ async function main() {
 
 main().catch((error) => {
   console.error("");
-  console.error("? ERROR:", error);
+  console.error("❌ ERROR:", error);
   process.exit(1);
 });
