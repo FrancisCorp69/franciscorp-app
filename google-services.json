@@ -12,7 +12,20 @@
           "package_name": "com.franciscorp.app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "476590468336-st3b9vkdqs2lc8os8oflp1ql95mdt2r4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.franciscorp.app",
+            "certificate_hash": "49bae76f1151d790c645e3dea1a2efa971b5a5b2"
+          }
+        },
+        {
+          "client_id": "476590468336-ofji66qo7io6t7dp9d7msk1mbkfm8l3c.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyD2I-t5EFXtG_UfRJvqytdwyYkHgP5p2zY"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "476590468336-ofji66qo7io6t7dp9d7msk1mbkfm8l3c.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
