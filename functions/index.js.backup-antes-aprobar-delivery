@@ -1,4 +1,4 @@
-const { onDocumentCreated, onDocumentUpdated } = require("firebase-functions/v2/firestore");
+Ôªøconst { onDocumentCreated, onDocumentUpdated } = require("firebase-functions/v2/firestore");
 const { initializeApp } = require("firebase-admin/app");
 const { getAuth } = require("firebase-admin/auth");
 const { getFirestore } = require("firebase-admin/firestore");
@@ -12,37 +12,37 @@ const CHANNEL_ID = "pedidos";
 
 const ESTADOS = {
   pendiente: {
-    titulo: "?? Nuevo pedido",
+    titulo: "üõí Nuevo pedido",
     mensaje: "Tienes un nuevo pedido pendiente.",
   },
 
   aceptado: {
-    titulo: "? Pedido aceptado",
-    mensaje: "El negocio aceptÛ tu pedido.",
+    titulo: "‚úÖ Pedido aceptado",
+    mensaje: "El negocio acept√≥ tu pedido.",
   },
 
   preparando: {
-    titulo: "????? Pedido en preparaciÛn",
-    mensaje: "Tu pedido ya est· siendo preparado.",
+    titulo: "üë®‚Äçüç≥ Pedido en preparaci√≥n",
+    mensaje: "Tu pedido ya est√° siendo preparado.",
   },
 
   listo: {
-    titulo: "?? Pedido listo",
-    mensaje: "Tu pedido est· listo para ser entregado.",
+    titulo: "üì¶ Pedido listo",
+    mensaje: "Tu pedido est√° listo para ser entregado.",
   },
 
   en_camino: {
-    titulo: "?? Pedido en camino",
-    mensaje: "Tu pedido ya est· en camino.",
+    titulo: "üöó Pedido en camino",
+    mensaje: "Tu pedido ya est√° en camino.",
   },
 
   entregado: {
-    titulo: "?? Pedido entregado",
+    titulo: "üéâ Pedido entregado",
     mensaje: "Tu pedido ha sido entregado correctamente.",
   },
 
   cancelado: {
-    titulo: "? Pedido cancelado",
+    titulo: "‚ùå Pedido cancelado",
     mensaje: "Tu pedido ha sido cancelado.",
   },
 };
@@ -174,7 +174,7 @@ async function notificarNegocio(
 
   if (!propietarioId) {
     console.log(
-      "No se encontrÛ propietario para negocio:",
+      "No se encontr√≥ propietario para negocio:",
       negocioId
     );
     return;
@@ -218,7 +218,7 @@ exports.notificarNuevoPedido =
 
       await notificarNegocio(
         pedido.negocioId,
-        "?? Nuevo pedido",
+        "üõí Nuevo pedido",
         `Has recibido un nuevo pedido en ${negocioNombre}.`,
         {
           tipo: "nuevo_pedido",
@@ -274,7 +274,7 @@ exports.notificarCambioEstado =
 
       if (!configuracion) {
         console.log(
-          "Estado sin notificaciÛn:",
+          "Estado sin notificaci√≥n:",
           estadoNuevo
         );
         return;
@@ -326,7 +326,7 @@ exports.notificarCambioEstado =
       if (estadoNuevo === "cancelado") {
         await notificarUsuario(
           after.usuarioId,
-          "? Pedido cancelado",
+          "‚ùå Pedido cancelado",
           "Tu pedido ha sido cancelado.",
           datos
         );
@@ -341,11 +341,11 @@ exports.notificarCambioEstado =
  * ADMINISTRADOR INICIAL
  *
  * FUNCION TEMPORAL:
- * Activa el claim admin ˙nicamente para la cuenta
+ * Activa el claim admin √∫nicamente para la cuenta
  * inicial de FrancisCorp.
  *
  * IMPORTANTE:
- * Esta funciÛn ser· eliminada despuÈs de activar
+ * Esta funci√≥n ser√° eliminada despu√©s de activar
  * correctamente el administrador.
  */
 exports.activarAdministradorInicial = require("firebase-functions/v2/https").onCall(
@@ -401,7 +401,7 @@ async function verificarAdministrador(request) {
   if (!request.auth) {
     throw new HttpsError(
       "unauthenticated",
-      "Debes iniciar sesiÛn."
+      "Debes iniciar sesi√≥n."
     );
   }
 
@@ -446,14 +446,13 @@ exports.aprobarSolicitudDelivery = onCall(
     if (delivery.estadoVerificacion !== "pendiente") {
       throw new HttpsError(
         "failed-precondition",
-        "La solicitud ya no est· pendiente."
+        "La solicitud ya no est√° pendiente."
       );
     }
 
     const ahora = require("firebase-admin/firestore").FieldValue.serverTimestamp();
 
     await ref.update({
-      "roles.Delivery": true,
       "delivery.estadoVerificacion": "aprobado",
       "delivery.activo": true,
       "delivery.disponible": true,
@@ -511,7 +510,7 @@ exports.rechazarSolicitudDelivery = onCall(
     if (delivery.estadoVerificacion !== "pendiente") {
       throw new HttpsError(
         "failed-precondition",
-        "La solicitud ya no est· pendiente."
+        "La solicitud ya no est√° pendiente."
       );
     }
 
@@ -541,4 +540,3 @@ exports.rechazarSolicitudDelivery = onCall(
     };
   }
 );
-

@@ -427,6 +427,10 @@ export default function DeliveryScreen() {
     await setDoc(
       usuarioRef,
       {
+        roles: {
+          ...(datos.roles || {}),
+          Delivery: true,
+        },
 
         delivery: {
       ...deliveryActual,
@@ -569,6 +573,7 @@ export default function DeliveryScreen() {
         {
           roles: {
             Cliente: true,
+            Delivery: true,
           },
 
           delivery: {
@@ -1475,8 +1480,6 @@ const styles = StyleSheet.create({
     marginTop: 15,
   },
 });
-
-
 
 
 

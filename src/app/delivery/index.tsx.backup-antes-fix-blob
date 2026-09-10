@@ -1,4 +1,4 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+Ôªøimport { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system/legacy";
 import { router } from "expo-router";
@@ -13,7 +13,7 @@ import {
 import {
   getDownloadURL,
   ref,
-  uploadBytes,
+  uploadString,
 } from "firebase/storage";
 import { useEffect, useState } from "react";
 import {
@@ -44,31 +44,6 @@ type DocumentoEstado = {
   fotoVerificacion: boolean;
 };
 
-function uriToBlob(uri: string): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-
-    xhr.onload = () => {
-      if (xhr.response) {
-        resolve(xhr.response);
-      } else {
-        reject(
-          new Error("No se pudo leer la imagen seleccionada.")
-        );
-      }
-    };
-
-    xhr.onerror = () => {
-      reject(
-        new Error("No se pudo leer la imagen seleccionada.")
-      );
-    };
-
-    xhr.responseType = "blob";
-    xhr.open("GET", uri, true);
-    xhr.send(null);
-  });
-}
 export default function DeliveryScreen() {
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
@@ -173,7 +148,7 @@ export default function DeliveryScreen() {
 
       Alert.alert(
         "Error",
-        "No se pudo cargar la informaciÛn del Delivery.",
+        "No se pudo cargar la informaci√≥n del Delivery.",
       );
     } finally {
       setCargando(false);
@@ -190,7 +165,7 @@ export default function DeliveryScreen() {
       if (!permiso.granted) {
         Alert.alert(
           "Permiso necesario",
-          "Necesitamos acceso a tus fotografÌas.",
+          "Necesitamos acceso a tus fotograf√≠as.",
         );
 
         return;
@@ -214,7 +189,7 @@ export default function DeliveryScreen() {
       if (!uri) {
         Alert.alert(
           "Error",
-          "No se encontrÛ la imagen.",
+          "No se encontr√≥ la imagen.",
         );
 
         return;
@@ -243,7 +218,7 @@ export default function DeliveryScreen() {
       if (!permiso.granted) {
         Alert.alert(
           "Permiso necesario",
-          "Necesitamos acceso a la c·mara para realizar la verificaciÛn.",
+          "Necesitamos acceso a la c√°mara para realizar la verificaci√≥n.",
         );
 
         return;
@@ -266,7 +241,7 @@ export default function DeliveryScreen() {
       if (!uri) {
         Alert.alert(
           "Error",
-          "No se pudo obtener la fotografÌa.",
+          "No se pudo obtener la fotograf√≠a.",
         );
 
         return;
@@ -285,7 +260,7 @@ export default function DeliveryScreen() {
       Alert.alert(
         "Error",
         error?.message ||
-          "No se pudo tomar la fotografÌa.",
+          "No se pudo tomar la fotograf√≠a.",
       );
     }
   }
@@ -299,8 +274,8 @@ export default function DeliveryScreen() {
 
       if (!usuario) {
         Alert.alert(
-          "SesiÛn",
-          "Tu sesiÛn ha expirado.",
+          "Sesi√≥n",
+          "Tu sesi√≥n ha expirado.",
         );
 
         return;
@@ -308,7 +283,7 @@ export default function DeliveryScreen() {
 
       setGuardando(true);
 
-      const blob = await uriToBlob(uri);
+      const base64 = await FileSystem.readAsStringAsync(uri, { encoding: "base64" });
 
       const nombreArchivo =
         `${tipo}-${Date.now()}.jpg`;
@@ -345,9 +320,7 @@ export default function DeliveryScreen() {
 
       console.log("TOKEN DE AUTENTICACION REFRESCADO");
 
-      await uploadBytes(referencia, blob, {
-        contentType: "image/jpeg",
-      });
+      await uploadString(referencia, base64, "base64", { contentType: "image/jpeg" });
 
       /*
        * NO usamos getDownloadURL().
@@ -427,6 +400,10 @@ export default function DeliveryScreen() {
     await setDoc(
       usuarioRef,
       {
+        roles: {
+          ...(datos.roles || {}),
+          Delivery: true,
+        },
 
         delivery: {
       ...deliveryActual,
@@ -462,8 +439,8 @@ export default function DeliveryScreen() {
 
       if (!usuario) {
         Alert.alert(
-          "SesiÛn",
-          "Debes iniciar sesiÛn.",
+          "Sesi√≥n",
+          "Debes iniciar sesi√≥n.",
         );
 
         return;
@@ -471,8 +448,8 @@ export default function DeliveryScreen() {
 
       if (!marca.trim()) {
         Alert.alert(
-          "Falta informaciÛn",
-          "Ingresa la marca del vehÌculo.",
+          "Falta informaci√≥n",
+          "Ingresa la marca del veh√≠culo.",
         );
 
         return;
@@ -480,8 +457,8 @@ export default function DeliveryScreen() {
 
       if (!modelo.trim()) {
         Alert.alert(
-          "Falta informaciÛn",
-          "Ingresa el modelo del vehÌculo.",
+          "Falta informaci√≥n",
+          "Ingresa el modelo del veh√≠culo.",
         );
 
         return;
@@ -489,8 +466,8 @@ export default function DeliveryScreen() {
 
       if (!anio.trim()) {
         Alert.alert(
-          "Falta informaciÛn",
-          "Ingresa el aÒo del vehÌculo.",
+          "Falta informaci√≥n",
+          "Ingresa el a√±o del veh√≠culo.",
         );
 
         return;
@@ -498,8 +475,8 @@ export default function DeliveryScreen() {
 
       if (!color.trim()) {
         Alert.alert(
-          "Falta informaciÛn",
-          "Ingresa el color del vehÌculo.",
+          "Falta informaci√≥n",
+          "Ingresa el color del veh√≠culo.",
         );
 
         return;
@@ -510,8 +487,8 @@ export default function DeliveryScreen() {
         !placa.trim()
       ) {
         Alert.alert(
-          "Falta informaciÛn",
-          "Ingresa la placa del vehÌculo.",
+          "Falta informaci√≥n",
+          "Ingresa la placa del veh√≠culo.",
         );
 
         return;
@@ -520,7 +497,7 @@ export default function DeliveryScreen() {
       if (!documentos.cedula) {
         Alert.alert(
           "Documento pendiente",
-          "Debes subir la cÈdula.",
+          "Debes subir la c√©dula.",
         );
 
         return;
@@ -541,7 +518,7 @@ export default function DeliveryScreen() {
       ) {
         Alert.alert(
           "Documento pendiente",
-          "Debes subir la matrÌcula.",
+          "Debes subir la matr√≠cula.",
         );
 
         return;
@@ -549,8 +526,8 @@ export default function DeliveryScreen() {
 
       if (!documentos.fotoVerificacion) {
         Alert.alert(
-          "VerificaciÛn pendiente",
-          "Debes tomar la fotografÌa de verificaciÛn con la c·mara.",
+          "Verificaci√≥n pendiente",
+          "Debes tomar la fotograf√≠a de verificaci√≥n con la c√°mara.",
         );
 
         return;
@@ -569,6 +546,7 @@ export default function DeliveryScreen() {
         {
           roles: {
             Cliente: true,
+            Delivery: true,
           },
 
           delivery: {
@@ -646,7 +624,7 @@ export default function DeliveryScreen() {
 
       Alert.alert(
         "Solicitud enviada",
-        "Tu solicitud para trabajar como Delivery fue enviada a revisiÛn. Podr·s comenzar a trabajar cuando FrancisCorp apruebe tu solicitud.",
+        "Tu solicitud para trabajar como Delivery fue enviada a revisi√≥n. Podr√°s comenzar a trabajar cuando FrancisCorp apruebe tu solicitud.",
         [
           {
             text: "Continuar",
@@ -746,7 +724,7 @@ export default function DeliveryScreen() {
         />
 
         <Text style={styles.cargandoTexto}>
-          Cargando informaciÛn...
+          Cargando informaci√≥n...
         </Text>
       </View>
     );
@@ -772,7 +750,7 @@ export default function DeliveryScreen() {
           </Text>
 
           <Text style={styles.headerSubtitulo}>
-            Solicitud y verificaciÛn
+            Solicitud y verificaci√≥n
           </Text>
         </View>
       </View>
@@ -823,20 +801,20 @@ export default function DeliveryScreen() {
 
           <View style={styles.infoTexto}>
             <Text style={styles.infoTitulo}>
-              VerificaciÛn de identidad
+              Verificaci√≥n de identidad
             </Text>
 
             <Text style={styles.infoDescripcion}>
               Para trabajar como Delivery,
               FrancisCorp debe verificar tu
-              identidad y la informaciÛn de tu
-              vehÌculo.
+              identidad y la informaci√≥n de tu
+              veh√≠culo.
             </Text>
           </View>
         </View>
 
         <Text style={styles.seccionTitulo}>
-          InformaciÛn personal
+          Informaci√≥n personal
         </Text>
 
         <View style={styles.card}>
@@ -854,7 +832,7 @@ export default function DeliveryScreen() {
           />
 
           <Text style={styles.label}>
-            TelÈfono
+            Tel√©fono
           </Text>
 
           <TextInput
@@ -879,12 +857,12 @@ export default function DeliveryScreen() {
         </View>
 
         <Text style={styles.seccionTitulo}>
-          VehÌculo
+          Veh√≠culo
         </Text>
 
         <View style={styles.card}>
           <Text style={styles.label}>
-            Tipo de vehÌculo
+            Tipo de veh√≠culo
           </Text>
 
           <View style={styles.vehiculos}>
@@ -969,7 +947,7 @@ export default function DeliveryScreen() {
           />
 
           <Text style={styles.label}>
-            AÒo
+            A√±o
           </Text>
 
           <TextInput
@@ -1010,19 +988,19 @@ export default function DeliveryScreen() {
         </View>
 
         <Text style={styles.seccionTitulo}>
-          DocumentaciÛn
+          Documentaci√≥n
         </Text>
 
         <DocumentoCard
-          titulo="CÈdula"
-          descripcion="Sube una fotografÌa clara de tu cÈdula."
+          titulo="C√©dula"
+          descripcion="Sube una fotograf√≠a clara de tu c√©dula."
           tipo="cedula"
           subido={documentos.cedula}
         />
 
         <DocumentoCard
           titulo="Licencia de conducir"
-          descripcion="Sube una fotografÌa clara de tu licencia."
+          descripcion="Sube una fotograf√≠a clara de tu licencia."
           tipo="licencia"
           subido={documentos.licencia}
         />
@@ -1030,8 +1008,8 @@ export default function DeliveryScreen() {
         {tipoVehiculo !==
           "bicicleta" && (
           <DocumentoCard
-            titulo="MatrÌcula"
-            descripcion="Sube una fotografÌa clara de la matrÌcula."
+            titulo="Matr√≠cula"
+            descripcion="Sube una fotograf√≠a clara de la matr√≠cula."
             tipo="matricula"
             subido={documentos.matricula}
           />
@@ -1057,7 +1035,7 @@ export default function DeliveryScreen() {
               styles.verificacionTitulo
             }
           >
-            FotografÌa de verificaciÛn
+            Fotograf√≠a de verificaci√≥n
           </Text>
 
           <Text
@@ -1065,10 +1043,10 @@ export default function DeliveryScreen() {
               styles.verificacionDescripcion
             }
           >
-            Esta fotografÌa debe tomarse
-            directamente con la c·mara
+            Esta fotograf√≠a debe tomarse
+            directamente con la c√°mara
             frontal. No se puede seleccionar
-            desde la galerÌa.
+            desde la galer√≠a.
           </Text>
 
           <TouchableOpacity
@@ -1092,8 +1070,8 @@ export default function DeliveryScreen() {
               }
             >
               {documentos.fotoVerificacion
-                ? "Tomar nueva fotografÌa"
-                : "Tomar fotografÌa"}
+                ? "Tomar nueva fotograf√≠a"
+                : "Tomar fotograf√≠a"}
             </Text>
           </TouchableOpacity>
         </View>
@@ -1107,8 +1085,8 @@ export default function DeliveryScreen() {
 
           <Text style={styles.seguridadTexto}>
             Tus documentos de identidad se
-            almacenan en un ·rea privada de
-            FrancisCorp y no son p˙blicos.
+            almacenan en un √°rea privada de
+            FrancisCorp y no son p√∫blicos.
           </Text>
         </View>
 
@@ -1145,9 +1123,9 @@ export default function DeliveryScreen() {
         </TouchableOpacity>
 
         <Text style={styles.notaFinal}>
-          Tu cuenta seguir· siendo una sola
+          Tu cuenta seguir√° siendo una sola
           cuenta FrancisCorp. El rol Delivery
-          se aÒadir· a tu usuario existente.
+          se a√±adir√° a tu usuario existente.
         </Text>
       </ScrollView>
     </View>
@@ -1475,16 +1453,6 @@ const styles = StyleSheet.create({
     marginTop: 15,
   },
 });
-
-
-
-
-
-
-
-
-
-
 
 
 
