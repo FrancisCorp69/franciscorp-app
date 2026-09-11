@@ -28,12 +28,6 @@ const MODULOS: Modulo[] = [
     ruta: "/administrador/delivery",
   },
   {
-    titulo: "Solicitudes Expreso",
-    icono: "car-outline",
-    activo: true,
-    ruta: "/administrador/expreso",
-  },
-  {
     titulo: "Usuarios",
     icono: "account-group-outline",
     activo: false,
@@ -363,4 +357,3 @@ const styles = StyleSheet.create({
     color: "#999",
   },
 });
-
