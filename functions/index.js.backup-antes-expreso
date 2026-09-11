@@ -1,0 +1,544 @@
+const { onDocumentCreated, onDocumentUpdated } = require("firebase-functions/v2/firestore");
+const { initializeApp } = require("firebase-admin/app");
+const { getAuth } = require("firebase-admin/auth");
+const { getFirestore } = require("firebase-admin/firestore");
+
+initializeApp();
+
+const db = getFirestore();
+
+const EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send";
+const CHANNEL_ID = "pedidos";
+
+const ESTADOS = {
+  pendiente: {
+    titulo: "?? Nuevo pedido",
+    mensaje: "Tienes un nuevo pedido pendiente.",
+  },
+
+  aceptado: {
+    titulo: "? Pedido aceptado",
+    mensaje: "El negocio aceptó tu pedido.",
+  },
+
+  preparando: {
+    titulo: "????? Pedido en preparación",
+    mensaje: "Tu pedido ya está siendo preparado.",
+  },
+
+  listo: {
+    titulo: "?? Pedido listo",
+    mensaje: "Tu pedido está listo para ser entregado.",
+  },
+
+  en_camino: {
+    titulo: "?? Pedido en camino",
+    mensaje: "Tu pedido ya está en camino.",
+  },
+
+  entregado: {
+    titulo: "?? Pedido entregado",
+    mensaje: "Tu pedido ha sido entregado correctamente.",
+  },
+
+  cancelado: {
+    titulo: "? Pedido cancelado",
+    mensaje: "Tu pedido ha sido cancelado.",
+  },
+};
+
+function esExpoToken(token) {
+  return (
+    typeof token === "string" &&
+    token.startsWith("ExponentPushToken[")
+  );
+}
+
+function limpiarTokens(tokens) {
+  if (!Array.isArray(tokens)) {
+    return [];
+  }
+
+  return [...new Set(tokens.filter(esExpoToken))];
+}
+
+async function obtenerTokensUsuario(uid) {
+  if (!uid) {
+    return [];
+  }
+
+  const usuarioSnap = await db
+    .collection("usuarios")
+    .doc(uid)
+    .get();
+
+  if (!usuarioSnap.exists) {
+    console.log("Usuario no encontrado:", uid);
+    return [];
+  }
+
+  const datos = usuarioSnap.data() || {};
+
+  return limpiarTokens(datos.expoPushTokens);
+}
+
+async function obtenerPropietarioNegocio(negocioId) {
+  if (!negocioId) {
+    return null;
+  }
+
+  const negocioSnap = await db
+    .collection("negocios")
+    .doc(negocioId)
+    .get();
+
+  if (!negocioSnap.exists) {
+    console.log("Negocio no encontrado:", negocioId);
+    return null;
+  }
+
+  const datos = negocioSnap.data() || {};
+
+  return datos.propietarioId || datos.ownerId || null;
+}
+
+async function enviarExpo(tokens, titulo, mensaje, data = {}) {
+  const tokensValidos = limpiarTokens(tokens);
+
+  if (tokensValidos.length === 0) {
+    console.log("No hay tokens para enviar:", titulo);
+    return;
+  }
+
+  const mensajes = tokensValidos.map((token) => ({
+    to: token,
+    sound: "default",
+    title: titulo,
+    body: mensaje,
+    channelId: CHANNEL_ID,
+    priority: "high",
+    data,
+  }));
+
+  try {
+    const respuesta = await fetch(EXPO_PUSH_URL, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Accept-Encoding": "gzip, deflate",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(mensajes),
+    });
+
+    const resultado = await respuesta.json();
+
+    console.log(
+      "EXPO PUSH:",
+      JSON.stringify(resultado)
+    );
+  } catch (error) {
+    console.error(
+      "ERROR ENVIANDO NOTIFICACION:",
+      error
+    );
+  }
+}
+
+async function notificarUsuario(
+  uid,
+  titulo,
+  mensaje,
+  data
+) {
+  const tokens = await obtenerTokensUsuario(uid);
+
+  await enviarExpo(
+    tokens,
+    titulo,
+    mensaje,
+    data
+  );
+}
+
+async function notificarNegocio(
+  negocioId,
+  titulo,
+  mensaje,
+  data
+) {
+  const propietarioId =
+    await obtenerPropietarioNegocio(
+      negocioId
+    );
+
+  if (!propietarioId) {
+    console.log(
+      "No se encontró propietario para negocio:",
+      negocioId
+    );
+    return;
+  }
+
+  await notificarUsuario(
+    propietarioId,
+    titulo,
+    mensaje,
+    data
+  );
+}
+
+/**
+ * NUEVO PEDIDO
+ *
+ * Cuando se crea un pedido:
+ * CLIENTE -> NEGOCIO
+ */
+exports.notificarNuevoPedido =
+  onDocumentCreated(
+    "pedidos/{pedidoId}",
+    async (event) => {
+      const snapshot = event.data;
+
+      if (!snapshot) {
+        return;
+      }
+
+      const pedido = snapshot.data() || {};
+      const pedidoId = event.params.pedidoId;
+
+      console.log(
+        "NUEVO PEDIDO:",
+        pedidoId
+      );
+
+      const negocioNombre =
+        pedido.negocioNombre ||
+        "tu negocio";
+
+      await notificarNegocio(
+        pedido.negocioId,
+        "?? Nuevo pedido",
+        `Has recibido un nuevo pedido en ${negocioNombre}.`,
+        {
+          tipo: "nuevo_pedido",
+          pedidoId,
+          negocioId: pedido.negocioId || "",
+          estado: pedido.estado || "pendiente",
+        }
+      );
+    }
+  );
+
+/**
+ * CAMBIO DE ESTADO
+ *
+ * Se ejecuta solamente cuando cambia realmente
+ * el campo estado.
+ */
+exports.notificarCambioEstado =
+  onDocumentUpdated(
+    "pedidos/{pedidoId}",
+    async (event) => {
+      const before =
+        event.data.before.data() || {};
+
+      const after =
+        event.data.after.data() || {};
+
+      const pedidoId =
+        event.params.pedidoId;
+
+      const estadoAnterior =
+        before.estado;
+
+      const estadoNuevo =
+        after.estado;
+
+      if (
+        estadoAnterior === estadoNuevo
+      ) {
+        return;
+      }
+
+      console.log(
+        "CAMBIO DE ESTADO:",
+        pedidoId,
+        estadoAnterior,
+        "->",
+        estadoNuevo
+      );
+
+      const configuracion =
+        ESTADOS[estadoNuevo];
+
+      if (!configuracion) {
+        console.log(
+          "Estado sin notificación:",
+          estadoNuevo
+        );
+        return;
+      }
+
+      const datos = {
+        tipo: "cambio_estado_pedido",
+        pedidoId,
+        negocioId: after.negocioId || "",
+        estadoAnterior:
+          estadoAnterior || "",
+        estadoNuevo,
+      };
+
+      /**
+       * ACEPTADO
+       * PREPARANDO
+       * LISTO
+       * EN_CAMINO
+       * ENTREGADO
+       *
+       * NEGOCIO -> CLIENTE
+       */
+      if (
+        [
+          "aceptado",
+          "preparando",
+          "listo",
+          "en_camino",
+          "entregado",
+        ].includes(estadoNuevo)
+      ) {
+        await notificarUsuario(
+          after.usuarioId,
+          configuracion.titulo,
+          configuracion.mensaje,
+          datos
+        );
+
+        return;
+      }
+
+      /**
+       * CANCELADO
+       *
+       * El negocio cancela:
+       * NEGOCIO -> CLIENTE
+       */
+      if (estadoNuevo === "cancelado") {
+        await notificarUsuario(
+          after.usuarioId,
+          "? Pedido cancelado",
+          "Tu pedido ha sido cancelado.",
+          datos
+        );
+
+        return;
+      }
+    }
+  );
+
+
+/**
+ * ADMINISTRADOR INICIAL
+ *
+ * FUNCION TEMPORAL:
+ * Activa el claim admin únicamente para la cuenta
+ * inicial de FrancisCorp.
+ *
+ * IMPORTANTE:
+ * Esta función será eliminada después de activar
+ * correctamente el administrador.
+ */
+exports.activarAdministradorInicial = require("firebase-functions/v2/https").onCall(
+  async (request) => {
+    const UID_ADMIN = "cjkFpObYrEZwhDU0kBo6Oz6YdzJ2";
+    const EMAIL_ADMIN = "admdudu@gmail.com";
+
+    if (!request.auth) {
+      throw new Error("No autenticado.");
+    }
+
+    if (request.auth.uid !== UID_ADMIN) {
+      throw new Error("No autorizado.");
+    }
+
+    if (request.auth.token.email !== EMAIL_ADMIN) {
+      throw new Error("Correo no autorizado.");
+    }
+
+    const auth = getAuth();
+    const usuario = await auth.getUser(UID_ADMIN);
+
+    await auth.setCustomUserClaims(UID_ADMIN, {
+      ...(usuario.customClaims || {}),
+      admin: true,
+    });
+
+    console.log(
+      "ADMINISTRADOR INICIAL ACTIVADO:",
+      EMAIL_ADMIN,
+      UID_ADMIN
+    );
+
+    return {
+      ok: true,
+      mensaje: "Administrador inicial activado correctamente.",
+    };
+  }
+);
+
+/**
+ * =========================================================
+ * ADMINISTRACION DELIVERY
+ * =========================================================
+ */
+
+const {
+  onCall,
+  HttpsError,
+} = require("firebase-functions/v2/https");
+
+async function verificarAdministrador(request) {
+  if (!request.auth) {
+    throw new HttpsError(
+      "unauthenticated",
+      "Debes iniciar sesión."
+    );
+  }
+
+  if (request.auth.token.admin !== true) {
+    throw new HttpsError(
+      "permission-denied",
+      "No autorizado."
+    );
+  }
+}
+
+exports.aprobarSolicitudDelivery = onCall(
+  async (request) => {
+    await verificarAdministrador(request);
+
+    const deliveryId = request.data?.deliveryId;
+
+    if (
+      typeof deliveryId !== "string" ||
+      deliveryId.trim() === ""
+    ) {
+      throw new HttpsError(
+        "invalid-argument",
+        "deliveryId es obligatorio."
+      );
+    }
+
+    const ref = db.collection("usuarios").doc(deliveryId);
+
+    const snapshot = await ref.get();
+
+    if (!snapshot.exists) {
+      throw new HttpsError(
+        "not-found",
+        "El usuario Delivery no existe."
+      );
+    }
+
+    const datos = snapshot.data() || {};
+    const delivery = datos.delivery || {};
+
+    if (delivery.estadoVerificacion !== "pendiente") {
+      throw new HttpsError(
+        "failed-precondition",
+        "La solicitud ya no está pendiente."
+      );
+    }
+
+    const ahora = require("firebase-admin/firestore").FieldValue.serverTimestamp();
+
+    await ref.update({
+      "roles.Delivery": true,
+      "delivery.estadoVerificacion": "aprobado",
+      "delivery.activo": true,
+      "delivery.disponible": true,
+      "delivery.estado": "aprobado",
+      "delivery.solicitud.estado": "aprobado",
+      "delivery.solicitud.fechaRevision": ahora,
+      "delivery.solicitud.revisadoPor": request.auth.uid,
+      fechaActualizacion: ahora,
+    });
+
+    console.log(
+      "DELIVERY APROBADO:",
+      deliveryId,
+      "POR:",
+      request.auth.uid
+    );
+
+    return {
+      ok: true,
+      mensaje: "Solicitud Delivery aprobada correctamente.",
+    };
+  }
+);
+
+exports.rechazarSolicitudDelivery = onCall(
+  async (request) => {
+    await verificarAdministrador(request);
+
+    const deliveryId = request.data?.deliveryId;
+
+    if (
+      typeof deliveryId !== "string" ||
+      deliveryId.trim() === ""
+    ) {
+      throw new HttpsError(
+        "invalid-argument",
+        "deliveryId es obligatorio."
+      );
+    }
+
+    const ref = db.collection("usuarios").doc(deliveryId);
+
+    const snapshot = await ref.get();
+
+    if (!snapshot.exists) {
+      throw new HttpsError(
+        "not-found",
+        "El usuario Delivery no existe."
+      );
+    }
+
+    const datos = snapshot.data() || {};
+    const delivery = datos.delivery || {};
+
+    if (delivery.estadoVerificacion !== "pendiente") {
+      throw new HttpsError(
+        "failed-precondition",
+        "La solicitud ya no está pendiente."
+      );
+    }
+
+    const ahora = require("firebase-admin/firestore").FieldValue.serverTimestamp();
+
+    await ref.update({
+      "delivery.estadoVerificacion": "rechazado",
+      "delivery.activo": false,
+      "delivery.disponible": false,
+      "delivery.estado": "rechazado",
+      "delivery.solicitud.estado": "rechazado",
+      "delivery.solicitud.fechaRevision": ahora,
+      "delivery.solicitud.revisadoPor": request.auth.uid,
+      fechaActualizacion: ahora,
+    });
+
+    console.log(
+      "DELIVERY RECHAZADO:",
+      deliveryId,
+      "POR:",
+      request.auth.uid
+    );
+
+    return {
+      ok: true,
+      mensaje: "Solicitud Delivery rechazada correctamente.",
+    };
+  }
+);
+

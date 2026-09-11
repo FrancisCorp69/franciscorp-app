@@ -1,4 +1,4 @@
-ï»¿import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -53,12 +53,6 @@ const seleccionarRol = (rol: Rol) => {
     if (rol === "Delivery") {
       setMenuAbierto(false);
       router.push("/delivery" as any);
-      return;
-    }
-
-    if (rol === "Expreso") {
-      setMenuAbierto(false);
-      router.push("/rol-expreso");
       return;
     }
 
@@ -143,7 +137,7 @@ const seleccionarRol = (rol: Rol) => {
         />
       </View>
 
-      {/* ================= MENÃš LATERAL ================= */}
+      {/* ================= MENÚ LATERAL ================= */}
       <Modal
         visible={menuAbierto}
         transparent
@@ -336,7 +330,7 @@ const seleccionarRol = (rol: Rol) => {
 
               <View style={styles.separador} />
 
-              {/* ================= CONFIGURACIÃ“N ================= */}
+              {/* ================= CONFIGURACIÓN ================= */}
               <TouchableOpacity
                 style={styles.opcion}
                 activeOpacity={0.7}
@@ -349,7 +343,7 @@ const seleccionarRol = (rol: Rol) => {
                 />
 
                 <Text style={styles.opcionTexto}>
-                  ConfiguraciÃ³n y privacidad
+                  Configuración y privacidad
                 </Text>
               </TouchableOpacity>
 
@@ -366,13 +360,13 @@ const seleccionarRol = (rol: Rol) => {
                 />
 
                 <Text style={styles.opcionTexto}>
-                  Ayuda y soporte tÃ©cnico
+                  Ayuda y soporte técnico
                 </Text>
               </TouchableOpacity>
 
               <View style={styles.separador} />
 
-              {/* ================= CERRAR SESIÃ“N ================= */}
+              {/* ================= CERRAR SESIÓN ================= */}
               <TouchableOpacity
                 style={styles.opcionPrincipal}
                 activeOpacity={0.7}
@@ -388,7 +382,7 @@ const seleccionarRol = (rol: Rol) => {
                 />
 
                 <Text style={[styles.opcionTexto, styles.cerrarSesionTexto]}>
-                  Cerrar sesiÃ³n
+                  Cerrar sesión
                 </Text>
               </TouchableOpacity>
             </ScrollView>
@@ -636,7 +630,6 @@ const styles = StyleSheet.create({
     color: "#D32F2F",
   },
 });
-
 
 
 
