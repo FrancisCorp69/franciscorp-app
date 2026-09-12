@@ -526,51 +526,6 @@ service cloud.firestore {
     }
 
   }
-
-  match /solicitudes_expreso/{solicitudId} {
-
-    allow create: if request.auth != null
-                  && request.resource.data.clienteId == request.auth.uid
-                  && request.resource.data.keys().hasAll([
-                    "clienteId",
-                    "origen",
-                    "destino",
-                    "pasajeros",
-                    "ofertaCliente",
-                    "estado",
-                    "fechaCreacion",
-                    "fechaActualizacion"
-                  ])
-                  && request.resource.data.estado == "buscando"
-                  && request.resource.data.pasajeros >= 1
-                  && request.resource.data.ofertaCliente > 0;
-
-    allow read: if request.auth != null
-                && (
-                  resource.data.clienteId == request.auth.uid
-                  ||
-                  (
-                    resource.data.estado == "buscando"
-                    && exists(/databases/$(database)/documents/usuarios/$(request.auth.uid))
-                    && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.roles.Expreso == true
-                    && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.expreso.estadoVerificacion == "aprobado"
-                    && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.expreso.activo == true
-                    && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.expreso.disponible == true
-                  )
-                );
-
-    allow update: if request.auth != null
-                  && resource.data.clienteId == request.auth.uid
-                  && resource.data.estado == "buscando"
-                  && request.resource.data.clienteId == resource.data.clienteId
-                  && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-                    "estado",
-                    "fechaActualizacion"
-                  ])
-                  && request.resource.data.estado == "cancelado";
-
-    allow delete: if false;
-  }
 }
 
 
