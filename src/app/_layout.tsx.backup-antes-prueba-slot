@@ -1,0 +1,13 @@
+﻿import JSStack from "expo-router/build/layouts/JSStack";
+import { CartProvider } from "../context/CartContext";
+import AuthProvider from "../components/AuthProvider";
+
+export default function Layout() {
+  return (
+    <AuthProvider>
+      <CartProvider>
+        <JSStack />
+      </CartProvider>
+    </AuthProvider>
+  );
+}

@@ -113,7 +113,7 @@ const cambiarDisponibilidadExpreso = async () => {
 
   const [marca, setMarca] = useState("");
   const [modelo, setModelo] = useState("");
-  const [anio, setAño] = useState("");
+  const [anio, setAnio] = useState("");
   const [color, setColor] = useState("");
   const [placa, setPlaca] = useState("");
 
@@ -175,7 +175,7 @@ const cambiarDisponibilidadExpreso = async () => {
 
           setMarca(expreso.marca || "");
           setModelo(expreso.modelo || "");
-          setAño(expreso.anio || "");
+          setAnio(expreso.anio || "");
           setColor(expreso.color || "");
           setPlaca(expreso.placa || "");
 
@@ -375,7 +375,7 @@ const cambiarDisponibilidadExpreso = async () => {
       }
 
       if (tipo === "matricula") {
-        carpeta = "vehículo";
+        carpeta = "vehiculo";
       }
 
       const ruta =
@@ -503,7 +503,7 @@ const cambiarDisponibilidadExpreso = async () => {
     );
   }
 
-  async function guardarConfiguraciónExpreso() {
+  async function guardarConfiguracionExpreso() {
     try {
       const usuario = auth.currentUser;
 
@@ -1025,14 +1025,14 @@ const cambiarDisponibilidadExpreso = async () => {
           <View style={styles.franjaDorada} />
 
           <View style={[styles.card, styles.configuracionCard]}>
-            <Text style={styles.seccionTitulo}>Configuración</Text>
-            <Text style={styles.infoDescripcion}>Configura la información de tu rol Expreso.</Text>
+            <Text style={styles.seccionTitulo}>Configuracion</Text>
+            <Text style={styles.infoDescripcion}>Configura la informacion de tu rol Expreso.</Text>
             <TouchableOpacity
               onPress={() => setConfigurando(!configurando)}
               style={[styles.botonEnviar, styles.configuracionBoton]}
             >
               <Text style={styles.botonEnviarTexto}>
-                {configurando ? "Cerrar configuracion" : "Configurar mi información"}
+                {configurando ? "Cerrar configuracion" : "Configurar mi informacion"}
               </Text>
             </TouchableOpacity>
 
@@ -1050,33 +1050,33 @@ const cambiarDisponibilidadExpreso = async () => {
                 />
 
                 <Text style={styles.label}>
-                  Tipo de vehículo
+                  Tipo de vehiculo
                 </Text>
 
-                <View style={styles.vehículos}>
+                <View style={styles.vehiculos}>
                   {[
                     { valor: "moto", nombre: "Moto", icono: "motorbike" },
                     { valor: "auto", nombre: "Auto", icono: "car" },
                     { valor: "bicicleta", nombre: "Bicicleta", icono: "bike" },
-                  ].map((vehículo) => (
+                  ].map((vehiculo) => (
                     <TouchableOpacity
-                      key={vehículo.valor}
+                      key={vehiculo.valor}
                       style={[
-                        styles.vehículo,
-                        tipoVehiculo === vehículo.valor &&
-                          styles.vehículoActivo,
+                        styles.vehiculo,
+                        tipoVehiculo === vehiculo.valor &&
+                          styles.vehiculoActivo,
                       ]}
                       onPress={() =>
                         setTipoVehiculo(
-                          vehículo.valor as TipoVehiculo,
+                          vehiculo.valor as TipoVehiculo,
                         )
                       }
                     >
                       <MaterialCommunityIcons
-                        name={vehículo.icono as any}
+                        name={vehiculo.icono as any}
                         size={28}
                         color={
-                          tipoVehiculo === vehículo.valor
+                          tipoVehiculo === vehiculo.valor
                             ? "#FFFFFF"
                             : "#0066CC"
                         }
@@ -1084,12 +1084,12 @@ const cambiarDisponibilidadExpreso = async () => {
 
                       <Text
                         style={[
-                          styles.vehículoTexto,
-                          tipoVehiculo === vehículo.valor &&
-                            styles.vehículoTextoActivo,
+                          styles.vehiculoTexto,
+                          tipoVehiculo === vehiculo.valor &&
+                            styles.vehiculoTextoActivo,
                         ]}
                       >
-                        {vehículo.nombre}
+                        {vehiculo.nombre}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -1113,11 +1113,11 @@ const cambiarDisponibilidadExpreso = async () => {
                   style={styles.input}
                 />
 
-                <Text style={styles.label}>Año</Text>
+                <Text style={styles.label}>Anio</Text>
 
                 <TextInput
                   value={anio}
-                  onChangeText={setAño}
+                  onChangeText={setAnio}
                   placeholder="Ej. 2024"
                   keyboardType="numeric"
                   style={styles.input}
@@ -1151,7 +1151,7 @@ const cambiarDisponibilidadExpreso = async () => {
                     styles.botonEnviar,
                     guardando && styles.botonDeshabilitado,
                   ]}
-                  onPress={guardarConfiguraciónExpreso}
+                  onPress={guardarConfiguracionExpreso}
                   disabled={guardando}
                 >
                   {guardando ? (
@@ -1221,7 +1221,7 @@ const cambiarDisponibilidadExpreso = async () => {
             Tipo de vehÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¿Ãƒâ€šÃ‚Â½culo
           </Text>
 
-          <View style={styles.vehículos}>
+          <View style={styles.vehiculos}>
             {[
               {
                 valor: "moto",
@@ -1238,29 +1238,29 @@ const cambiarDisponibilidadExpreso = async () => {
                 nombre: "Bicicleta",
                 icono: "bike",
               },
-            ].map((vehículo) => (
+            ].map((vehiculo) => (
               <TouchableOpacity
-                key={vehículo.valor}
+                key={vehiculo.valor}
                 style={[
-                  styles.vehículo,
+                  styles.vehiculo,
                   tipoVehiculo ===
-                    vehículo.valor &&
-                    styles.vehículoActivo,
+                    vehiculo.valor &&
+                    styles.vehiculoActivo,
                 ]}
                 onPress={() =>
                   setTipoVehiculo(
-                    vehículo.valor as TipoVehiculo,
+                    vehiculo.valor as TipoVehiculo,
                   )
                 }
               >
                 <MaterialCommunityIcons
                   name={
-                    vehículo.icono as any
+                    vehiculo.icono as any
                   }
                   size={30}
                   color={
                     tipoVehiculo ===
-                    vehículo.valor
+                    vehiculo.valor
                       ? "#FFFFFF"
                       : "#0066CC"
                   }
@@ -1268,13 +1268,13 @@ const cambiarDisponibilidadExpreso = async () => {
 
                 <Text
                   style={[
-                    styles.vehículoTexto,
+                    styles.vehiculoTexto,
                     tipoVehiculo ===
-                      vehículo.valor &&
-                      styles.vehículoTextoActivo,
+                      vehiculo.valor &&
+                      styles.vehiculoTextoActivo,
                   ]}
                 >
-                  {vehículo.nombre}
+                  {vehiculo.nombre}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -1308,7 +1308,7 @@ const cambiarDisponibilidadExpreso = async () => {
 
           <TextInput
             value={anio}
-            onChangeText={setAño}
+            onChangeText={setAnio}
             placeholder="Ej. 2024"
             keyboardType="numeric"
             style={styles.input}
@@ -1690,13 +1690,13 @@ disponibilidadPunto: {
     backgroundColor: "#EEF1F4",
   },
 
-  vehículos: {
+  vehiculos: {
     flexDirection: "row",
     gap: 8,
     marginBottom: 10,
   },
 
-  vehículo: {
+  vehiculo: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
@@ -1707,18 +1707,18 @@ disponibilidadPunto: {
     backgroundColor: "#F8FBFF",
   },
 
-  vehículoActivo: {
+  vehiculoActivo: {
     backgroundColor: "#0066CC",
     borderColor: "#0066CC",
   },
 
-  vehículoTexto: {
+  vehiculoTexto: {
     marginTop: 5,
     color: "#0066CC",
     fontWeight: "700",
   },
 
-  vehículoTextoActivo: {
+  vehiculoTextoActivo: {
     color: "#FFFFFF",
   },
 

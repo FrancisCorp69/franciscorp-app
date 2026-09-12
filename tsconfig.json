@@ -3,10 +3,24 @@
   "compilerOptions": {
     "strict": true,
     "paths": {
-      "@/*": ["./src/*"],
-      "@/assets/*": ["./assets/*"],
-      "firebase/auth": ["./node_modules/@firebase/auth/dist/rn/index.rn.d.ts"]
+      "@/*": [
+        "./src/*"
+      ],
+      "@/assets/*": [
+        "./assets/*"
+      ],
+      "firebase/auth": [
+        "./node_modules/@firebase/auth/dist/rn/index.rn.d.ts"
+      ]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
+  ],
+  "exclude": [
+    "src/backups/**/*"
+  ]
 }

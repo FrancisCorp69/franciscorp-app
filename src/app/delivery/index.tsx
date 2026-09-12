@@ -79,7 +79,7 @@ export default function DeliveryScreen() {
 
 const cambiarDisponibilidad = async () => {
   if (!auth.currentUser) {
-    Alert.alert("Error", "No hay una sesiï¿½n activa.");
+    Alert.alert("Error", "No hay una sesión activa.");
     return;
   }
 
@@ -220,7 +220,7 @@ const cambiarDisponibilidad = async () => {
 
       Alert.alert(
         "Error",
-        "No se pudo cargar la informaciï¿½n del Delivery.",
+        "No se pudo cargar la información del Delivery.",
       );
     } finally {
       setCargando(false);
@@ -237,7 +237,7 @@ const cambiarDisponibilidad = async () => {
       if (!permiso.granted) {
         Alert.alert(
           "Permiso necesario",
-          "Necesitamos acceso a tus fotografï¿½as.",
+          "Necesitamos acceso a tus fotografías.",
         );
 
         return;
@@ -261,7 +261,7 @@ const cambiarDisponibilidad = async () => {
       if (!uri) {
         Alert.alert(
           "Error",
-          "No se encontrï¿½ la imagen.",
+          "No se encontró la imagen.",
         );
 
         return;
@@ -290,7 +290,7 @@ const cambiarDisponibilidad = async () => {
       if (!permiso.granted) {
         Alert.alert(
           "Permiso necesario",
-          "Necesitamos acceso a la cï¿½mara para realizar la verificaciï¿½n.",
+          "Necesitamos acceso a la cámara para realizar la verificación.",
         );
 
         return;
@@ -313,7 +313,7 @@ const cambiarDisponibilidad = async () => {
       if (!uri) {
         Alert.alert(
           "Error",
-          "No se pudo obtener la fotografï¿½a.",
+          "No se pudo obtener la fotografía.",
         );
 
         return;
@@ -332,7 +332,7 @@ const cambiarDisponibilidad = async () => {
       Alert.alert(
         "Error",
         error?.message ||
-          "No se pudo tomar la fotografï¿½a.",
+          "No se pudo tomar la fotografía.",
       );
     }
   }
@@ -346,8 +346,8 @@ const cambiarDisponibilidad = async () => {
 
       if (!usuario) {
         Alert.alert(
-          "Sesiï¿½n",
-          "Tu sesiï¿½n ha expirado.",
+          "Sesión",
+          "Tu sesión ha expirado.",
         );
 
         return;
@@ -509,8 +509,8 @@ const cambiarDisponibilidad = async () => {
 
       if (!usuario) {
         Alert.alert(
-          "Sesiï¿½n",
-          "Debes iniciar sesiï¿½n.",
+          "Sesión",
+          "Debes iniciar sesión.",
         );
         return;
       }
@@ -518,39 +518,39 @@ const cambiarDisponibilidad = async () => {
       if (!rolDeliveryAprobado) {
         Alert.alert(
           "No disponible",
-          "La configuraciï¿½n estarï¿½ disponible cuando tu solicitud sea aprobada.",
+          "La configuración estará disponible cuando tu solicitud sea aprobada.",
         );
         return;
       }
 
       if (!marca.trim()) {
         Alert.alert(
-          "Falta informaciï¿½n",
-          "Ingresa la marca del vehï¿½culo.",
+          "Falta información",
+          "Ingresa la marca del vehículo.",
         );
         return;
       }
 
       if (!modelo.trim()) {
         Alert.alert(
-          "Falta informaciï¿½n",
-          "Ingresa el modelo del vehï¿½culo.",
+          "Falta información",
+          "Ingresa el modelo del vehículo.",
         );
         return;
       }
 
       if (!anio.trim()) {
         Alert.alert(
-          "Falta informaciï¿½n",
-          "Ingresa el aï¿½o del vehï¿½culo.",
+          "Falta información",
+          "Ingresa el año del vehículo.",
         );
         return;
       }
 
       if (!color.trim()) {
         Alert.alert(
-          "Falta informaciï¿½n",
-          "Ingresa el color del vehï¿½culo.",
+          "Falta información",
+          "Ingresa el color del vehículo.",
         );
         return;
       }
@@ -560,8 +560,8 @@ const cambiarDisponibilidad = async () => {
         !placa.trim()
       ) {
         Alert.alert(
-          "Falta informaciï¿½n",
-          "Ingresa la placa del vehï¿½culo.",
+          "Falta información",
+          "Ingresa la placa del vehículo.",
         );
         return;
       }
@@ -589,8 +589,8 @@ const cambiarDisponibilidad = async () => {
       setConfigurando(false);
 
       Alert.alert(
-        "Configuraciï¿½n guardada",
-        "Los cambios de tu informaciï¿½n Delivery fueron guardados correctamente.",
+        "Configuración guardada",
+        "Los cambios de tu información Delivery fueron guardados correctamente.",
       );
     } catch (error) {
       console.error(
@@ -612,8 +612,8 @@ const cambiarDisponibilidad = async () => {
 
       if (!usuario) {
         Alert.alert(
-          "Sesiï¿½n",
-          "Debes iniciar sesiï¿½n.",
+          "Sesión",
+          "Debes iniciar sesión.",
         );
 
         return;
@@ -621,8 +621,8 @@ const cambiarDisponibilidad = async () => {
 
       if (!marca.trim()) {
         Alert.alert(
-          "Falta informaciï¿½n",
-          "Ingresa la marca del vehï¿½culo.",
+          "Falta información",
+          "Ingresa la marca del vehículo.",
         );
 
         return;
@@ -630,8 +630,8 @@ const cambiarDisponibilidad = async () => {
 
       if (!modelo.trim()) {
         Alert.alert(
-          "Falta informaciï¿½n",
-          "Ingresa el modelo del vehï¿½culo.",
+          "Falta información",
+          "Ingresa el modelo del vehículo.",
         );
 
         return;
@@ -639,8 +639,8 @@ const cambiarDisponibilidad = async () => {
 
       if (!anio.trim()) {
         Alert.alert(
-          "Falta informaciï¿½n",
-          "Ingresa el aï¿½o del vehï¿½culo.",
+          "Falta información",
+          "Ingresa el año del vehículo.",
         );
 
         return;
@@ -648,8 +648,8 @@ const cambiarDisponibilidad = async () => {
 
       if (!color.trim()) {
         Alert.alert(
-          "Falta informaciï¿½n",
-          "Ingresa el color del vehï¿½culo.",
+          "Falta información",
+          "Ingresa el color del vehículo.",
         );
 
         return;
@@ -660,8 +660,8 @@ const cambiarDisponibilidad = async () => {
         !placa.trim()
       ) {
         Alert.alert(
-          "Falta informaciï¿½n",
-          "Ingresa la placa del vehï¿½culo.",
+          "Falta información",
+          "Ingresa la placa del vehículo.",
         );
 
         return;
@@ -670,7 +670,7 @@ const cambiarDisponibilidad = async () => {
       if (!documentos.cedula) {
         Alert.alert(
           "Documento pendiente",
-          "Debes subir la cï¿½dula.",
+          "Debes subir la cédula.",
         );
 
         return;
@@ -691,7 +691,7 @@ const cambiarDisponibilidad = async () => {
       ) {
         Alert.alert(
           "Documento pendiente",
-          "Debes subir la matrï¿½cula.",
+          "Debes subir la matrícula.",
         );
 
         return;
@@ -699,8 +699,8 @@ const cambiarDisponibilidad = async () => {
 
       if (!documentos.fotoVerificacion) {
         Alert.alert(
-          "Verificaciï¿½n pendiente",
-          "Debes tomar la fotografï¿½a de verificaciï¿½n con la cï¿½mara.",
+          "Verificación pendiente",
+          "Debes tomar la fotografía de verificación con la cámara.",
         );
 
         return;
@@ -796,7 +796,7 @@ const cambiarDisponibilidad = async () => {
 
       Alert.alert(
         "Solicitud enviada",
-        "Tu solicitud para trabajar como Delivery fue enviada a revisiï¿½n. Podrï¿½s comenzar a trabajar cuando FrancisCorp apruebe tu solicitud.",
+        "Tu solicitud para trabajar como Delivery fue enviada a revisión. Podrás comenzar a trabajar cuando FrancisCorp apruebe tu solicitud.",
         [
           {
             text: "Continuar",
@@ -896,7 +896,7 @@ const cambiarDisponibilidad = async () => {
         />
 
         <Text style={styles.cargandoTexto}>
-          Cargando informaciï¿½n...
+          Cargando información...
         </Text>
       </View>
     );
@@ -922,7 +922,7 @@ const cambiarDisponibilidad = async () => {
           </Text>
 
           <Text style={styles.headerSubtitulo}>
-            Solicitud y verificaciï¿½n
+            Solicitud y verificación
           </Text>
         </View>
       </View>
@@ -973,14 +973,14 @@ const cambiarDisponibilidad = async () => {
 
           <View style={styles.infoTexto}>
             <Text style={styles.infoTitulo}>
-              Verificaciï¿½n de identidad
+              Verificación de identidad
             </Text>
 
             <Text style={styles.infoDescripcion}>
               Para trabajar como Delivery,
               FrancisCorp debe verificar tu
-              identidad y la informaciï¿½n de tu
-              vehï¿½culo.
+              identidad y la información de tu
+              vehículo.
             </Text>
           </View>
         </View>
@@ -998,7 +998,7 @@ const cambiarDisponibilidad = async () => {
 
             {fechaAprobacion ? (
               <Text style={styles.infoDescripcion}>
-                Fecha de aprobaciï¿½n: {fechaAprobacion}
+                Fecha de aprobación: {fechaAprobacion}
               </Text>
             ) : null}
 
@@ -1169,7 +1169,7 @@ const cambiarDisponibilidad = async () => {
         {!rolDeliveryAprobado && (
           <>
         <Text style={styles.seccionTitulo}>
-          Informaciï¿½n personal
+          Información personal
         </Text>
 
         <View style={styles.card}>
@@ -1187,7 +1187,7 @@ const cambiarDisponibilidad = async () => {
           />
 
           <Text style={styles.label}>
-            Telï¿½fono
+            Teléfono
           </Text>
 
           <TextInput
@@ -1212,12 +1212,12 @@ const cambiarDisponibilidad = async () => {
         </View>
 
         <Text style={styles.seccionTitulo}>
-          Vehï¿½culo
+          Vehículo
         </Text>
 
         <View style={styles.card}>
           <Text style={styles.label}>
-            Tipo de vehï¿½culo
+            Tipo de vehículo
           </Text>
 
           <View style={styles.vehiculos}>
@@ -1302,7 +1302,7 @@ const cambiarDisponibilidad = async () => {
           />
 
           <Text style={styles.label}>
-            Aï¿½o
+            Año
           </Text>
 
           <TextInput
@@ -1343,19 +1343,19 @@ const cambiarDisponibilidad = async () => {
         </View>
 
         <Text style={styles.seccionTitulo}>
-          Documentaciï¿½n
+          Documentación
         </Text>
 
         <DocumentoCard
-          titulo="Cï¿½dula"
-          descripcion="Sube una fotografï¿½a clara de tu cï¿½dula."
+          titulo="Cédula"
+          descripcion="Sube una fotografía clara de tu cédula."
           tipo="cedula"
           subido={documentos.cedula}
         />
 
         <DocumentoCard
           titulo="Licencia de conducir"
-          descripcion="Sube una fotografï¿½a clara de tu licencia."
+          descripcion="Sube una fotografía clara de tu licencia."
           tipo="licencia"
           subido={documentos.licencia}
         />
@@ -1363,8 +1363,8 @@ const cambiarDisponibilidad = async () => {
         {tipoVehiculo !==
           "bicicleta" && (
           <DocumentoCard
-            titulo="Matrï¿½cula"
-            descripcion="Sube una fotografï¿½a clara de la matrï¿½cula."
+            titulo="Matrícula"
+            descripcion="Sube una fotografía clara de la matrícula."
             tipo="matricula"
             subido={documentos.matricula}
           />
@@ -1390,7 +1390,7 @@ const cambiarDisponibilidad = async () => {
               styles.verificacionTitulo
             }
           >
-            Fotografï¿½a de verificaciï¿½n
+            Fotografía de verificación
           </Text>
 
           <Text
@@ -1398,10 +1398,10 @@ const cambiarDisponibilidad = async () => {
               styles.verificacionDescripcion
             }
           >
-            Esta fotografï¿½a debe tomarse
-            directamente con la cï¿½mara
+            Esta fotografía debe tomarse
+            directamente con la cámara
             frontal. No se puede seleccionar
-            desde la galerï¿½a.
+            desde la galería.
           </Text>
 
           <TouchableOpacity
@@ -1425,8 +1425,8 @@ const cambiarDisponibilidad = async () => {
               }
             >
               {documentos.fotoVerificacion
-                ? "Tomar nueva fotografï¿½a"
-                : "Tomar fotografï¿½a"}
+                ? "Tomar nueva fotografía"
+                : "Tomar fotografía"}
             </Text>
           </TouchableOpacity>
         </View>
@@ -1440,8 +1440,8 @@ const cambiarDisponibilidad = async () => {
 
           <Text style={styles.seguridadTexto}>
             Tus documentos de identidad se
-            almacenan en un ï¿½rea privada de
-            FrancisCorp y no son pï¿½blicos.
+            almacenan en un área privada de
+            FrancisCorp y no son públicos.
           </Text>
         </View>
 
@@ -1478,9 +1478,9 @@ const cambiarDisponibilidad = async () => {
         </TouchableOpacity>
 
         <Text style={styles.notaFinal}>
-          Tu cuenta seguirï¿½ siendo una sola
+          Tu cuenta seguirá siendo una sola
           cuenta FrancisCorp. El rol Delivery
-          se aï¿½adirï¿½ a tu usuario existente.
+          se añadirá a tu usuario existente.
         </Text>
           </>
         )}

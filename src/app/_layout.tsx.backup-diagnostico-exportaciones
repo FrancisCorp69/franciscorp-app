@@ -1,0 +1,22 @@
+﻿import * as ExpoRouter from "expo-router";
+import { View, Text } from "react-native";
+import { CartProvider } from "../context/CartContext";
+import AuthProvider from "../components/AuthProvider";
+
+console.log("=== DIAGNOSTICO EXPO ROUTER ===");
+console.log("Stack:", typeof ExpoRouter.Stack);
+console.log("StackNavigator:", typeof ExpoRouter.StackNavigator);
+console.log("Keys:", Object.keys(ExpoRouter).filter((k) => k.toLowerCase().includes("stack")));
+
+export default function Layout() {
+  console.log("=== RENDER LAYOUT ===");
+  console.log("Stack dentro Layout:", typeof ExpoRouter.Stack);
+
+  return (
+    <AuthProvider>
+      <CartProvider>
+        <ExpoRouter.Stack />
+      </CartProvider>
+    </AuthProvider>
+  );
+}

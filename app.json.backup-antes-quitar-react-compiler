@@ -1,4 +1,4 @@
-﻿{
+{
   "expo": {
     "name": "franciscorp-app",
     "slug": "franciscorp-app",
@@ -50,7 +50,8 @@
       "@react-native-google-signin/google-signin"
     ],
     "experiments": {
-      "typedRoutes": true
+      "typedRoutes": true,
+      "reactCompiler": true
     },
     "extra": {
       "router": {},
