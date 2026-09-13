@@ -1,4 +1,4 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+﻿import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import {
   collection,
@@ -18,7 +18,6 @@ import {
   View,
 } from "react-native";
 import { db } from "../services/firebase";
-import { useCart } from "../context/CartContext";
 
 interface Negocio {
   id: string;
@@ -59,8 +58,6 @@ interface Producto {
 
 export default function VistaNegocioScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
-
-  const { agregarProducto } = useCart();
 
   const [negocio, setNegocio] = useState<Negocio | null>(null);
   const [productos, setProductos] = useState<Producto[]>([]);
@@ -177,30 +174,9 @@ export default function VistaNegocioScreen() {
   }
 
   function agregarAlCarrito(producto: Producto) {
-    if (!id || !negocio) return;
-
-    const agregado = agregarProducto(
-      String(id),
-      negocio.nombre || "Negocio",
-      {
-        id: producto.id,
-        nombre: producto.nombre,
-        precio: producto.precio,
-        foto: producto.foto,
-      }
-    );
-
-    if (!agregado) {
-      Alert.alert(
-        "Carrito de otro negocio",
-        "Tu carrito contiene productos de otro negocio. Vacía el carrito antes de agregar productos de este negocio."
-      );
-      return;
-    }
-
     Alert.alert(
-      "Producto agregado",
-      `"${producto.nombre || "Producto"}" fue agregado al carrito.`
+      "Próximamente",
+      `"${producto.nombre || "Producto"}" se podrá agregar al carrito cuando implementemos el sistema de pedidos.`
     );
   }
 

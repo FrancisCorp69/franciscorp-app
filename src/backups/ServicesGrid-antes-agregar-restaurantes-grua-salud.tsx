@@ -50,34 +50,10 @@ const servicios = [
     icono: "🛠️",
     ruta: "/servicios",
   },
-  {
-    id: "restaurantes",
-    nombre: "Restaurantes",
-    icono: "\u{1F37D}\uFE0F",
-    ruta: "/restaurantes",
-  },
-  {
-    id: "grua",
-    nombre: "Gr?a",
-    icono: "\u{1F697}",
-    ruta: null,
-  },
-  {
-    id: "salud",
-    nombre: "Salud",
-    icono: "\u2695\uFE0F",
-    ruta: null,
-  },
-  {
-    id: "ambulancia",
-    nombre: "Ambulancia",
-    icono: "\u{1F691}",
-    ruta: null,
-  },
 ];
 
 export default function ServicesGrid() {
-  const abrirServicio = (ruta: string | null) => {
+  const abrirServicio = (ruta: string) => {
     router.push(ruta as any);
   };
 

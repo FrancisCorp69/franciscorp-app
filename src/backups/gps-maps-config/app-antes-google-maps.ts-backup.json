@@ -1,4 +1,4 @@
-{
+﻿{
   "expo": {
     "name": "franciscorp-app",
     "slug": "franciscorp-app",
@@ -47,13 +47,7 @@
           "defaultChannel": "pedidos"
         }
       ],
-      "@react-native-google-signin/google-signin",
-      [
-        "react-native-maps",
-        {
-          "androidGoogleMapsApiKey": "process.env.GOOGLE_MAPS_API_KEY"
-        }
-      ]
+      "@react-native-google-signin/google-signin"
     ],
     "experiments": {
       "typedRoutes": true

@@ -1,4 +1,4 @@
-﻿import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { router } from "expo-router";
 
 const servicios = [
@@ -53,31 +53,32 @@ const servicios = [
   {
     id: "restaurantes",
     nombre: "Restaurantes",
-    icono: "\u{1F37D}\uFE0F",
-    ruta: "/restaurantes",
+    icono: "🍽️",
+    ruta: null,
   },
   {
     id: "grua",
-    nombre: "Gr?a",
-    icono: "\u{1F697}",
+    nombre: "Grúa",
+    icono: "🚗",
     ruta: null,
   },
   {
     id: "salud",
     nombre: "Salud",
-    icono: "\u2695\uFE0F",
+    icono: "⚕️",
     ruta: null,
   },
   {
     id: "ambulancia",
     nombre: "Ambulancia",
-    icono: "\u{1F691}",
+    icono: "🚑",
     ruta: null,
   },
 ];
 
 export default function ServicesGrid() {
   const abrirServicio = (ruta: string | null) => {
+    if (!ruta) return;
     router.push(ruta as any);
   };
 
@@ -152,4 +153,5 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
+
 

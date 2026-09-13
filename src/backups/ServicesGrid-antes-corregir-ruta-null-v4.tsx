@@ -77,7 +77,7 @@ const servicios = [
 ];
 
 export default function ServicesGrid() {
-  const abrirServicio = (ruta: string | null) => {
+  const abrirServicio = (ruta: string) => {
     router.push(ruta as any);
   };
 

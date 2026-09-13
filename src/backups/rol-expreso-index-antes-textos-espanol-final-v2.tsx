@@ -1,4 +1,4 @@
-﻿import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system/legacy";
 import { router } from "expo-router";
@@ -220,7 +220,7 @@ const cambiarDisponibilidadExpreso = async () => {
 
       Alert.alert(
         "Error",
-        "No se pudo cargar la información del Expreso.",
+        "No se pudo cargar la informaci?n del Expreso.",
       );
     } finally {
       setCargando(false);
@@ -237,7 +237,7 @@ const cambiarDisponibilidadExpreso = async () => {
       if (!permiso.granted) {
         Alert.alert(
           "Permiso necesario",
-          "Necesitamos acceso a tus fotografías.",
+          "Necesitamos acceso a tus fotograf?as.",
         );
 
         return;
@@ -290,7 +290,7 @@ const cambiarDisponibilidadExpreso = async () => {
       if (!permiso.granted) {
         Alert.alert(
           "Permiso necesario",
-          "Necesitamos acceso a la cámara para realizar la verificación.",
+          "Necesitamos acceso a la c?mara para realizar la verificaci?n.",
         );
 
         return;
@@ -313,7 +313,7 @@ const cambiarDisponibilidadExpreso = async () => {
       if (!uri) {
         Alert.alert(
           "Error",
-          "No se pudo obtener la fotografía.",
+          "No se pudo obtener la fotograf?a.",
         );
 
         return;
@@ -332,7 +332,7 @@ const cambiarDisponibilidadExpreso = async () => {
       Alert.alert(
         "Error",
         error?.message ||
-          "No se pudo tomar la fotografía.",
+          "No se pudo tomar la fotograf?a.",
       );
     }
   }
@@ -518,14 +518,14 @@ const cambiarDisponibilidadExpreso = async () => {
       if (!rolExpresoAprobado) {
         Alert.alert(
           "No disponible",
-          "La configuración estará disponible cuando tu solicitud sea aprobada.",
+          "La configuraci?n estar? disponible cuando tu solicitud sea aprobada.",
         );
         return;
       }
 
       if (!marca.trim()) {
         Alert.alert(
-          "Falta información",
+          "Falta informaci?n",
           "Ingresa la marca del vehiculo.",
         );
         return;
@@ -533,7 +533,7 @@ const cambiarDisponibilidadExpreso = async () => {
 
       if (!modelo.trim()) {
         Alert.alert(
-          "Falta información",
+          "Falta informaci?n",
           "Ingresa el modelo del vehiculo.",
         );
         return;
@@ -541,15 +541,15 @@ const cambiarDisponibilidadExpreso = async () => {
 
       if (!anio.trim()) {
         Alert.alert(
-          "Falta información",
-          "Ingresa el año del vehiculo.",
+          "Falta informaci?n",
+          "Ingresa el a?o del vehiculo.",
         );
         return;
       }
 
       if (!color.trim()) {
         Alert.alert(
-          "Falta información",
+          "Falta informaci?n",
           "Ingresa el color del vehiculo.",
         );
         return;
@@ -560,7 +560,7 @@ const cambiarDisponibilidadExpreso = async () => {
         !placa.trim()
       ) {
         Alert.alert(
-          "Falta información",
+          "Falta informaci?n",
           "Ingresa la placa del vehiculo.",
         );
         return;
@@ -589,8 +589,8 @@ const cambiarDisponibilidadExpreso = async () => {
       setConfigurando(false);
 
       Alert.alert(
-        "Configuración guardada",
-        "Los cambios de tu información Expreso fueron guardados correctamente.",
+        "Configuraci?n guardada",
+        "Los cambios de tu informaci?n Expreso fueron guardados correctamente.",
       );
     } catch (error) {
       console.error(
@@ -621,7 +621,7 @@ const cambiarDisponibilidadExpreso = async () => {
 
       if (!marca.trim()) {
         Alert.alert(
-          "Falta información",
+          "Falta informaci?n",
           "Ingresa la marca del vehiculo.",
         );
 
@@ -630,7 +630,7 @@ const cambiarDisponibilidadExpreso = async () => {
 
       if (!modelo.trim()) {
         Alert.alert(
-          "Falta información",
+          "Falta informaci?n",
           "Ingresa el modelo del vehiculo.",
         );
 
@@ -639,8 +639,8 @@ const cambiarDisponibilidadExpreso = async () => {
 
       if (!anio.trim()) {
         Alert.alert(
-          "Falta información",
-          "Ingresa el año del vehiculo.",
+          "Falta informaci?n",
+          "Ingresa el a?o del vehiculo.",
         );
 
         return;
@@ -648,7 +648,7 @@ const cambiarDisponibilidadExpreso = async () => {
 
       if (!color.trim()) {
         Alert.alert(
-          "Falta información",
+          "Falta informaci?n",
           "Ingresa el color del vehiculo.",
         );
 
@@ -660,7 +660,7 @@ const cambiarDisponibilidadExpreso = async () => {
         !placa.trim()
       ) {
         Alert.alert(
-          "Falta información",
+          "Falta informaci?n",
           "Ingresa la placa del vehiculo.",
         );
 
@@ -670,7 +670,7 @@ const cambiarDisponibilidadExpreso = async () => {
       if (!documentos.cedula) {
         Alert.alert(
           "Documento pendiente",
-          "Debes subir la cédula.",
+          "Debes subir la c?dula.",
         );
 
         return;
@@ -691,7 +691,7 @@ const cambiarDisponibilidadExpreso = async () => {
       ) {
         Alert.alert(
           "Documento pendiente",
-          "Debes subir la matrícula.",
+          "Debes subir la matr?cula.",
         );
 
         return;
@@ -699,8 +699,8 @@ const cambiarDisponibilidadExpreso = async () => {
 
       if (!documentos.fotoVerificacion) {
         Alert.alert(
-          "Verificación pendiente",
-          "Debes tomar la fotografía de verificación con la cámara.",
+          "Verificaci?n pendiente",
+          "Debes tomar la fotograf?a de verificaci?n con la c?mara.",
         );
 
         return;
@@ -797,7 +797,7 @@ const cambiarDisponibilidadExpreso = async () => {
 
       Alert.alert(
         "Solicitud enviada",
-        "Tu solicitud para trabajar como Expreso fue enviada a revisión. Podrás comenzar a trabajar cuando FrancisCorp apruebe tu solicitud.",
+        "Tu solicitud para trabajar como Expreso fue enviada a revisi?n. Podr?s comenzar a trabajar cuando FrancisCorp apruebe tu solicitud.",
         [
           {
             text: "Continuar",
@@ -897,7 +897,7 @@ const cambiarDisponibilidadExpreso = async () => {
         />
 
         <Text style={styles.cargandoTexto}>
-          Cargando información...
+          Cargando informaci?n...
         </Text>
       </View>
     );
@@ -923,7 +923,7 @@ const cambiarDisponibilidadExpreso = async () => {
           </Text>
 
           <Text style={styles.headerSubtitulo}>
-            Solicitud y verificación
+            Solicitud y verificaci?n
           </Text>
         </View>
       </View>
@@ -974,13 +974,13 @@ const cambiarDisponibilidadExpreso = async () => {
 
           <View style={styles.infoTexto}>
             <Text style={styles.infoTitulo}>
-              Verificación de identidad
+              Verificaci?n de identidad
             </Text>
 
             <Text style={styles.infoDescripcion}>
               Para trabajar como Expreso,
               FrancisCorp debe verificar tu
-              identidad y la información de tu
+              identidad y la informaci?n de tu
               vehiculo.
             </Text>
           </View>
@@ -999,7 +999,7 @@ const cambiarDisponibilidadExpreso = async () => {
 
             {fechaAprobacion ? (
               <Text style={styles.infoDescripcion}>
-                Fecha de aprobación: {fechaAprobacion}
+                Fecha de aprobaci?n: {fechaAprobacion}
               </Text>
             ) : null}
 
@@ -1025,14 +1025,14 @@ const cambiarDisponibilidadExpreso = async () => {
           <View style={styles.franjaDorada} />
 
           <View style={[styles.card, styles.configuracionCard]}>
-            <Text style={styles.seccionTitulo}>Configuración</Text>
-            <Text style={styles.infoDescripcion}>Configura la información de tu rol Expreso.</Text>
+            <Text style={styles.seccionTitulo}>Configuraci?n</Text>
+            <Text style={styles.infoDescripcion}>Configura la informaci?n de tu rol Expreso.</Text>
             <TouchableOpacity
               onPress={() => setConfigurando(!configurando)}
               style={[styles.botonEnviar, styles.configuracionBoton]}
             >
               <Text style={styles.botonEnviarTexto}>
-                {configurando ? "Cerrar configuración" : "Configurar mi información"}
+                {configurando ? "Cerrar configuracion" : "Configurar mi informaci?n"}
               </Text>
             </TouchableOpacity>
 
@@ -1113,7 +1113,7 @@ const cambiarDisponibilidadExpreso = async () => {
                   style={styles.input}
                 />
 
-                <Text style={styles.label}>Año</Text>
+                <Text style={styles.label}>A?o</Text>
 
                 <TextInput
                   value={anio}
@@ -1163,15 +1163,14 @@ const cambiarDisponibilidadExpreso = async () => {
                   )}
                 </TouchableOpacity>
               </View>
-            )}
-            </View>
+            )}          </View>
           </>
         )}
 
         {!rolExpresoAprobado && (
           <>
         <Text style={styles.seccionTitulo}>
-          Información personal
+          Informaci?n personal
         </Text>
 
         <View style={styles.card}>
@@ -1189,7 +1188,7 @@ const cambiarDisponibilidadExpreso = async () => {
           />
 
           <Text style={styles.label}>
-            Teléfono
+            Tel?fono
           </Text>
 
           <TextInput
@@ -1304,7 +1303,7 @@ const cambiarDisponibilidadExpreso = async () => {
           />
 
           <Text style={styles.label}>
-            Año
+            A?o
           </Text>
 
           <TextInput
@@ -1345,19 +1344,19 @@ const cambiarDisponibilidadExpreso = async () => {
         </View>
 
         <Text style={styles.seccionTitulo}>
-          Documentación
+          Documentaci?n
         </Text>
 
         <DocumentoCard
-          titulo="Cédula"
-          descripcion="Sube una fotografía clara de tu cédula."
+          titulo="C?dula"
+          descripcion="Sube una fotograf?a clara de tu c?dula."
           tipo="cedula"
           subido={documentos.cedula}
         />
 
         <DocumentoCard
           titulo="Licencia de conducir"
-          descripcion="Sube una fotografía clara de tu licencia."
+          descripcion="Sube una fotograf?a clara de tu licencia."
           tipo="licencia"
           subido={documentos.licencia}
         />
@@ -1365,8 +1364,8 @@ const cambiarDisponibilidadExpreso = async () => {
         {tipoVehiculo !==
           "bicicleta" && (
           <DocumentoCard
-            titulo="Matrícula"
-            descripcion="Sube una fotografía clara de la matrícula."
+            titulo="Matr?cula"
+            descripcion="Sube una fotograf?a clara de la matr?cula."
             tipo="matricula"
             subido={documentos.matricula}
           />
@@ -1392,7 +1391,7 @@ const cambiarDisponibilidadExpreso = async () => {
               styles.verificacionTitulo
             }
           >
-            Fotografía de verificación
+            Fotograf?a de verificaci?n
           </Text>
 
           <Text
@@ -1400,8 +1399,8 @@ const cambiarDisponibilidadExpreso = async () => {
               styles.verificacionDescripcion
             }
           >
-            Esta fotografía debe tomarse
-            directamente con la cámara
+            Esta fotograf?a debe tomarse
+            directamente con la c?mara
             frontal. No se puede seleccionar
             desde la galer?a.
           </Text>
@@ -1427,8 +1426,8 @@ const cambiarDisponibilidadExpreso = async () => {
               }
             >
               {documentos.fotoVerificacion
-                ? "Tomar nueva fotografía"
-                : "Tomar fotografía"}
+                ? "Tomar nueva fotograf?a"
+                : "Tomar fotograf?a"}
             </Text>
           </TouchableOpacity>
         </View>
@@ -1442,8 +1441,8 @@ const cambiarDisponibilidadExpreso = async () => {
 
           <Text style={styles.seguridadTexto}>
             Tus documentos de identidad se
-            almacenan en un área privada de
-            FrancisCorp y no son públicos.
+            almacenan en un ?rea privada de
+            FrancisCorp y no son p?blicos.
           </Text>
         </View>
 
@@ -1480,9 +1479,9 @@ const cambiarDisponibilidadExpreso = async () => {
         </TouchableOpacity>
 
         <Text style={styles.notaFinal}>
-          Tu cuenta seguirá siendo una sola
+          Tu cuenta seguir? siendo una sola
           cuenta FrancisCorp. El rol Expreso
-          se añadirá a tu usuario existente.
+          se a?adir? a tu usuario existente.
         </Text>
           </>
         )}
@@ -1858,8 +1857,6 @@ disponibilidadPunto: {
     marginTop: 15,
   },
 });
-
-
 
 
 

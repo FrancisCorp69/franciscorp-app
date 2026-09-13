@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
     ActivityIndicator,
@@ -13,10 +13,6 @@ import {
 import { router } from 'expo-router';
 
 import { auth, db } from '../services/firebase';
-
-import SelectorUbicacion, {
-  UbicacionSeleccionada,
-} from '../components/SelectorUbicacion';
 
 import {
     doc,
@@ -34,9 +30,6 @@ export default function EditarPerfilScreen() {
   const [telefono, setTelefono] = useState('');
   const [direccion, setDireccion] = useState('');
   const [ciudad, setCiudad] = useState('');
-  const [provincia, setProvincia] = useState('');
-  const [ubicacionMapa, setUbicacionMapa] =
-    useState<UbicacionSeleccionada | null>(null);
 
 
   useEffect(() => {
@@ -79,20 +72,6 @@ export default function EditarPerfilScreen() {
         setNombre(datos.nombre || '');
         setTelefono(datos.telefono || '');
         setDireccion(datos.direccion || '');
-        setProvincia(datos.ubicacion?.provincia || '');
-        
-        if (
-          typeof datos.ubicacion?.latitud === 'number' &&
-          typeof datos.ubicacion?.longitud === 'number'
-        ) {
-          setUbicacionMapa({
-            direccion: datos.ubicacion?.direccion || datos.direccion || '',
-            ciudad: datos.ubicacion?.ciudad || datos.ciudad || '',
-            provincia: datos.ubicacion?.provincia || '',
-            latitud: datos.ubicacion.latitud,
-            longitud: datos.ubicacion.longitud,
-          });
-        }
         setCiudad(datos.ciudad || '');
 
       }
@@ -161,13 +140,6 @@ export default function EditarPerfilScreen() {
           telefono,
           direccion,
           ciudad,
-          ubicacion: {
-            direccion: direccion.trim(),
-            ciudad: ciudad.trim(),
-            provincia: provincia.trim(),
-            latitud: ubicacionMapa?.latitud ?? null,
-            longitud: ubicacionMapa?.longitud ?? null,
-          },
         }
       );
 
@@ -248,21 +220,23 @@ export default function EditarPerfilScreen() {
         value={telefono}
         onChangeText={setTelefono}
       />
-      <SelectorUbicacion
-        titulo="Dirección de entrega"
-        valorInicial={{
-          direccion,
-          ciudad,
-          provincia,
-          latitud: ubicacionMapa?.latitud,
-          longitud: ubicacionMapa?.longitud,
-        }}
-        onUbicacionSeleccionada={(ubicacion) => {
-          setUbicacionMapa(ubicacion);
-          setDireccion(ubicacion.direccion);
-          setCiudad(ubicacion.ciudad);
-          setProvincia(ubicacion.provincia);
-        }}
+
+
+
+      <TextInput
+        style={styles.input}
+        placeholder="Dirección"
+        value={direccion}
+        onChangeText={setDireccion}
+      />
+
+
+
+      <TextInput
+        style={styles.input}
+        placeholder="Ciudad"
+        value={ciudad}
+        onChangeText={setCiudad}
       />
 
 
@@ -384,7 +358,3 @@ const styles = StyleSheet.create({
 
 
 });
-
-
-
-

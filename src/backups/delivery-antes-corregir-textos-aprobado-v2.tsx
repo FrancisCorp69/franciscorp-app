@@ -69,17 +69,17 @@ function uriToBlob(uri: string): Promise<Blob> {
     xhr.send(null);
   });
 }
-export default function ExpresoScreen() {
+export default function DeliveryScreen() {
   const [cargando, setCargando] = useState(true);
-  const [rolExpresoAprobado, setRolExpresoAprobado] = useState(false);
+  const [rolDeliveryAprobado, setRolDeliveryAprobado] = useState(false);
   const [fechaAprobacion, setFechaAprobacion] = useState("");
   const [disponible, setDisponible] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [configurando, setConfigurando] = useState(false);
 
-const cambiarDisponibilidadExpreso = async () => {
+const cambiarDisponibilidad = async () => {
   if (!auth.currentUser) {
-    Alert.alert("Error", "No hay una sesi?n activa.");
+    Alert.alert("Error", "No hay una sesiÃ³n activa.");
     return;
   }
 
@@ -89,7 +89,7 @@ const cambiarDisponibilidadExpreso = async () => {
     await setDoc(
       doc(db, "usuarios", auth.currentUser.uid),
       {
-        "expreso.disponible": nuevoEstado,
+        "delivery.disponible": nuevoEstado,
       },
       { merge: true }
     );
@@ -146,21 +146,21 @@ const cambiarDisponibilidadExpreso = async () => {
       if (snapshot.exists()) {
         const datos = snapshot.data();
 
-        const expresoAprobado =
-          datos.roles?.Expreso === true &&
-          datos.expreso?.estadoVerificacion === "aprobado";
+        const deliveryAprobado =
+          datos.roles?.Delivery === true &&
+          datos.delivery?.estadoVerificacion === "aprobado";
 
-        setRolExpresoAprobado(expresoAprobado);
+        setRolDeliveryAprobado(deliveryAprobado);
 
         setNombre(datos.nombre || "");
         setTelefono(datos.telefono || "");
         setCiudad(datos.ciudad || "");
 
-        if (datos.expreso) {
-          const expreso = datos.expreso;
-          setDisponible(expreso.disponible === true);
-          if (expreso.solicitud?.fechaRevision) {
-            const fechaRevision = expreso.solicitud.fechaRevision;
+        if (datos.delivery) {
+          const delivery = datos.delivery;
+          setDisponible(delivery.disponible === true);
+          if (delivery.solicitud?.fechaRevision) {
+            const fechaRevision = delivery.solicitud.fechaRevision;
 
             if (fechaRevision.toDate) {
               setFechaAprobacion(
@@ -170,57 +170,57 @@ const cambiarDisponibilidadExpreso = async () => {
           }
 
           setTipoVehiculo(
-            expreso.tipoVehiculo || "moto",
+            delivery.tipoVehiculo || "moto",
           );
 
-          setMarca(expreso.marca || "");
-          setModelo(expreso.modelo || "");
-          setAnio(expreso.anio || "");
-          setColor(expreso.color || "");
-          setPlaca(expreso.placa || "");
+          setMarca(delivery.marca || "");
+          setModelo(delivery.modelo || "");
+          setAnio(delivery.anio || "");
+          setColor(delivery.color || "");
+          setPlaca(delivery.placa || "");
 
-          if (expreso.documentos) {
+          if (delivery.documentos) {
             setDocumentos({
               cedula:
-                expreso.documentos.cedula?.estado ===
+                delivery.documentos.cedula?.estado ===
                 "subido",
 
               licencia:
-                expreso.documentos.licencia?.estado ===
+                delivery.documentos.licencia?.estado ===
                 "subido",
 
               matricula:
-                expreso.documentos.matricula?.estado ===
+                delivery.documentos.matricula?.estado ===
                 "subido",
 
               fotoVerificacion:
-                expreso.documentos.fotoVerificacion
+                delivery.documentos.fotoVerificacion
                   ?.estado === "subido",
             });
 
             setRutas({
               cedula:
-                expreso.documentos.cedula?.path || "",
+                delivery.documentos.cedula?.path || "",
 
               licencia:
-                expreso.documentos.licencia?.path || "",
+                delivery.documentos.licencia?.path || "",
 
               matricula:
-                expreso.documentos.matricula?.path || "",
+                delivery.documentos.matricula?.path || "",
 
               fotoVerificacion:
-                expreso.documentos.fotoVerificacion
+                delivery.documentos.fotoVerificacion
                   ?.path || "",
             });
           }
         }
       }
     } catch (error) {
-      console.log("ERROR CARGANDO EXPRESO:", error);
+      console.log("ERROR CARGANDO DELIVERY:", error);
 
       Alert.alert(
         "Error",
-        "No se pudo cargar la información del Expreso.",
+        "No se pudo cargar la informaciÃ³n del Delivery.",
       );
     } finally {
       setCargando(false);
@@ -237,7 +237,7 @@ const cambiarDisponibilidadExpreso = async () => {
       if (!permiso.granted) {
         Alert.alert(
           "Permiso necesario",
-          "Necesitamos acceso a tus fotografías.",
+          "Necesitamos acceso a tus fotografÃ­as.",
         );
 
         return;
@@ -261,7 +261,7 @@ const cambiarDisponibilidadExpreso = async () => {
       if (!uri) {
         Alert.alert(
           "Error",
-          "No se encontr? la imagen.",
+          "No se encontrÃ³ la imagen.",
         );
 
         return;
@@ -270,7 +270,7 @@ const cambiarDisponibilidadExpreso = async () => {
       await subirDocumento(tipo, uri);
     } catch (error: any) {
       console.log(
-        "ERROR SELECCIONANDO DOCUMENTO EXPRESO:",
+        "ERROR SELECCIONANDO DOCUMENTO:",
         error,
       );
 
@@ -290,7 +290,7 @@ const cambiarDisponibilidadExpreso = async () => {
       if (!permiso.granted) {
         Alert.alert(
           "Permiso necesario",
-          "Necesitamos acceso a la cámara para realizar la verificación.",
+          "Necesitamos acceso a la cÃ¡mara para realizar la verificaciÃ³n.",
         );
 
         return;
@@ -313,7 +313,7 @@ const cambiarDisponibilidadExpreso = async () => {
       if (!uri) {
         Alert.alert(
           "Error",
-          "No se pudo obtener la fotografía.",
+          "No se pudo obtener la fotografÃ­a.",
         );
 
         return;
@@ -325,14 +325,14 @@ const cambiarDisponibilidadExpreso = async () => {
       );
     } catch (error: any) {
       console.log(
-        "ERROR TOMANDO FOTO DE VERIFICACION EXPRESO:",
+        "ERROR TOMANDO FOTO DE VERIFICACION:",
         error,
       );
 
       Alert.alert(
         "Error",
         error?.message ||
-          "No se pudo tomar la fotografía.",
+          "No se pudo tomar la fotografÃ­a.",
       );
     }
   }
@@ -346,8 +346,8 @@ const cambiarDisponibilidadExpreso = async () => {
 
       if (!usuario) {
         Alert.alert(
-          "Sesi?n",
-          "Tu sesi?n ha expirado.",
+          "SesiÃ³n",
+          "Tu sesiÃ³n ha expirado.",
         );
 
         return;
@@ -379,11 +379,11 @@ const cambiarDisponibilidadExpreso = async () => {
       }
 
       const ruta =
-        `expreso_privado/${usuario.uid}/${carpeta}/${nombreArchivo}`;
+        `delivery_privado/${usuario.uid}/${carpeta}/${nombreArchivo}`;
 
       const referencia = ref(storage, ruta);
 
-      console.log("=== DEBUG STORAGE EXPRESO ===");
+      console.log("=== DEBUG STORAGE DELIVERY ===");
       console.log("UID:", usuario.uid);
       console.log("RUTA:", ruta);
       console.log("CONTENT TYPE ENVIADO:", "image/jpeg");
@@ -427,7 +427,7 @@ const cambiarDisponibilidadExpreso = async () => {
       );
     } catch (error: any) {
       console.log(
-        "ERROR SUBIENDO DOCUMENTO EXPRESO:",
+        "ERROR SUBIENDO DOCUMENTO:",
         error,
       );
 
@@ -460,11 +460,11 @@ const cambiarDisponibilidadExpreso = async () => {
         ? snapshot.data()
         : {};
 
-    const expresoActual =
-      datos.expreso || {};
+    const deliveryActual =
+      datos.delivery || {};
 
     const documentosActuales =
-      expresoActual.documentos || {};
+      deliveryActual.documentos || {};
 
     const clave =
       tipo === "foto_verificacion"
@@ -475,16 +475,16 @@ const cambiarDisponibilidadExpreso = async () => {
       usuarioRef,
       {
 
-        expreso: {
-      ...expresoActual,
+        delivery: {
+      ...deliveryActual,
 
-      estadoVerificacion: expresoActual.estadoVerificacion || "pendiente",
+      estadoVerificacion: deliveryActual.estadoVerificacion || "pendiente",
 
-      estado: expresoActual.estado || "en_revision",
+      estado: deliveryActual.estado || "en_revision",
 
-      activo: expresoActual.activo ?? false,
+      activo: false,
 
-      disponible: expresoActual.disponible ?? false,
+      disponible: false,
 
       documentos: {
             ...documentosActuales,
@@ -503,54 +503,54 @@ const cambiarDisponibilidadExpreso = async () => {
     );
   }
 
-  async function guardarConfiguracionExpreso() {
+  async function guardarConfiguracionDelivery() {
     try {
       const usuario = auth.currentUser;
 
       if (!usuario) {
         Alert.alert(
-          "Sesi?n",
-          "Debes iniciar sesi?n.",
+          "SesiÃ³n",
+          "Debes iniciar sesiÃ³n.",
         );
         return;
       }
 
-      if (!rolExpresoAprobado) {
+      if (!rolDeliveryAprobado) {
         Alert.alert(
           "No disponible",
-          "La configuración estará disponible cuando tu solicitud sea aprobada.",
+          "La configuraciÃ³n estarÃ¡ disponible cuando tu solicitud sea aprobada.",
         );
         return;
       }
 
       if (!marca.trim()) {
         Alert.alert(
-          "Falta información",
-          "Ingresa la marca del vehiculo.",
+          "Falta informaciÃ³n",
+          "Ingresa la marca del vehÃ­culo.",
         );
         return;
       }
 
       if (!modelo.trim()) {
         Alert.alert(
-          "Falta información",
-          "Ingresa el modelo del vehiculo.",
+          "Falta informaciÃ³n",
+          "Ingresa el modelo del vehÃ­culo.",
         );
         return;
       }
 
       if (!anio.trim()) {
         Alert.alert(
-          "Falta información",
-          "Ingresa el año del vehiculo.",
+          "Falta informaciÃ³n",
+          "Ingresa el aÃ±o del vehÃ­culo.",
         );
         return;
       }
 
       if (!color.trim()) {
         Alert.alert(
-          "Falta información",
-          "Ingresa el color del vehiculo.",
+          "Falta informaciÃ³n",
+          "Ingresa el color del vehÃ­culo.",
         );
         return;
       }
@@ -560,8 +560,8 @@ const cambiarDisponibilidadExpreso = async () => {
         !placa.trim()
       ) {
         Alert.alert(
-          "Falta información",
-          "Ingresa la placa del vehiculo.",
+          "Falta informaciÃ³n",
+          "Ingresa la placa del vehÃ­culo.",
         );
         return;
       }
@@ -573,7 +573,7 @@ const cambiarDisponibilidadExpreso = async () => {
         {
           ciudad: ciudad.trim(),
 
-          expreso: {
+          delivery: {
             tipoVehiculo,
             marca: marca.trim(),
             modelo: modelo.trim(),
@@ -589,12 +589,12 @@ const cambiarDisponibilidadExpreso = async () => {
       setConfigurando(false);
 
       Alert.alert(
-        "Configuración guardada",
-        "Los cambios de tu información Expreso fueron guardados correctamente.",
+        "ConfiguraciÃ³n guardada",
+        "Los cambios de tu informaciÃ³n Delivery fueron guardados correctamente.",
       );
     } catch (error) {
       console.error(
-        "ERROR GUARDANDO CONFIGURACION EXPRESO:",
+        "ERROR GUARDANDO CONFIGURACION DELIVERY:",
         error,
       );
 
@@ -612,8 +612,8 @@ const cambiarDisponibilidadExpreso = async () => {
 
       if (!usuario) {
         Alert.alert(
-          "Sesi?n",
-          "Debes iniciar sesi?n.",
+          "SesiÃ³n",
+          "Debes iniciar sesiÃ³n.",
         );
 
         return;
@@ -621,8 +621,8 @@ const cambiarDisponibilidadExpreso = async () => {
 
       if (!marca.trim()) {
         Alert.alert(
-          "Falta información",
-          "Ingresa la marca del vehiculo.",
+          "Falta informaciÃ³n",
+          "Ingresa la marca del vehÃ­culo.",
         );
 
         return;
@@ -630,8 +630,8 @@ const cambiarDisponibilidadExpreso = async () => {
 
       if (!modelo.trim()) {
         Alert.alert(
-          "Falta información",
-          "Ingresa el modelo del vehiculo.",
+          "Falta informaciÃ³n",
+          "Ingresa el modelo del vehÃ­culo.",
         );
 
         return;
@@ -639,8 +639,8 @@ const cambiarDisponibilidadExpreso = async () => {
 
       if (!anio.trim()) {
         Alert.alert(
-          "Falta información",
-          "Ingresa el año del vehiculo.",
+          "Falta informaciÃ³n",
+          "Ingresa el aÃ±o del vehÃ­culo.",
         );
 
         return;
@@ -648,8 +648,8 @@ const cambiarDisponibilidadExpreso = async () => {
 
       if (!color.trim()) {
         Alert.alert(
-          "Falta información",
-          "Ingresa el color del vehiculo.",
+          "Falta informaciÃ³n",
+          "Ingresa el color del vehÃ­culo.",
         );
 
         return;
@@ -660,8 +660,8 @@ const cambiarDisponibilidadExpreso = async () => {
         !placa.trim()
       ) {
         Alert.alert(
-          "Falta información",
-          "Ingresa la placa del vehiculo.",
+          "Falta informaciÃ³n",
+          "Ingresa la placa del vehÃ­culo.",
         );
 
         return;
@@ -670,7 +670,7 @@ const cambiarDisponibilidadExpreso = async () => {
       if (!documentos.cedula) {
         Alert.alert(
           "Documento pendiente",
-          "Debes subir la cédula.",
+          "Debes subir la cÃ©dula.",
         );
 
         return;
@@ -691,7 +691,7 @@ const cambiarDisponibilidadExpreso = async () => {
       ) {
         Alert.alert(
           "Documento pendiente",
-          "Debes subir la matrícula.",
+          "Debes subir la matrÃ­cula.",
         );
 
         return;
@@ -699,8 +699,8 @@ const cambiarDisponibilidadExpreso = async () => {
 
       if (!documentos.fotoVerificacion) {
         Alert.alert(
-          "Verificación pendiente",
-          "Debes tomar la fotografía de verificación con la cámara.",
+          "VerificaciÃ³n pendiente",
+          "Debes tomar la fotografÃ­a de verificaciÃ³n con la cÃ¡mara.",
         );
 
         return;
@@ -719,10 +719,9 @@ const cambiarDisponibilidadExpreso = async () => {
         {
           roles: {
             Cliente: true,
-
           },
 
-          expreso: {
+          delivery: {
             activo: false,
             disponible: false,
 
@@ -797,7 +796,7 @@ const cambiarDisponibilidadExpreso = async () => {
 
       Alert.alert(
         "Solicitud enviada",
-        "Tu solicitud para trabajar como Expreso fue enviada a revisión. Podrás comenzar a trabajar cuando FrancisCorp apruebe tu solicitud.",
+        "Tu solicitud para trabajar como Delivery fue enviada a revisiÃ³n. PodrÃ¡s comenzar a trabajar cuando FrancisCorp apruebe tu solicitud.",
         [
           {
             text: "Continuar",
@@ -808,7 +807,7 @@ const cambiarDisponibilidadExpreso = async () => {
       );
     } catch (error: any) {
       console.log(
-        "ERROR ENVIANDO SOLICITUD EXPRESO:",
+        "ERROR ENVIANDO SOLICITUD DELIVERY:",
         error,
       );
 
@@ -897,7 +896,7 @@ const cambiarDisponibilidadExpreso = async () => {
         />
 
         <Text style={styles.cargandoTexto}>
-          Cargando información...
+          Cargando informaciÃ³n...
         </Text>
       </View>
     );
@@ -919,11 +918,11 @@ const cambiarDisponibilidadExpreso = async () => {
 
         <View>
           <Text style={styles.headerTitulo}>
-            Expreso
+            Delivery
           </Text>
 
           <Text style={styles.headerSubtitulo}>
-            Solicitud y verificación
+            Solicitud y verificaciÃ³n
           </Text>
         </View>
       </View>
@@ -937,7 +936,7 @@ const cambiarDisponibilidadExpreso = async () => {
         <TouchableOpacity
           style={styles.botonSolicitudes}
           onPress={() =>
-            router.push("/rol-expreso/solicitudes")
+            router.push("/delivery/solicitudes")
           }
         >
           <View style={styles.botonSolicitudesIcono}>
@@ -950,7 +949,7 @@ const cambiarDisponibilidadExpreso = async () => {
 
           <View style={styles.botonSolicitudesInfo}>
             <Text style={styles.botonSolicitudesTitulo}>
-              Solicitudes de Expreso
+              Solicitudes de Delivery
             </Text>
 
             <Text style={styles.botonSolicitudesTexto}>
@@ -974,204 +973,221 @@ const cambiarDisponibilidadExpreso = async () => {
 
           <View style={styles.infoTexto}>
             <Text style={styles.infoTitulo}>
-              Verificación de identidad
+              VerificaciÃ³n de identidad
             </Text>
 
             <Text style={styles.infoDescripcion}>
-              Para trabajar como Expreso,
+              Para trabajar como Delivery,
               FrancisCorp debe verificar tu
-              identidad y la información de tu
-              vehiculo.
+              identidad y la informaciÃ³n de tu
+              vehÃ­culo.
             </Text>
           </View>
         </View>
 
-        {rolExpresoAprobado && (
-          <>
-          <View style={styles.card}>
-            <Text style={styles.seccionTitulo}>
-              Rol Expreso aceptado
-            </Text>
+        {rolDeliveryAprobado && (
+  <>
+    <View style={styles.card}>
+      <Text style={styles.seccionTitulo}>
+        Rol Delivery aceptado
+      </Text>
 
-            <Text style={styles.infoDescripcion}>
-              Tu solicitud fue aprobada. Ya puedes trabajar como Expreso.
-            </Text>
+      <Text style={styles.infoDescripcion}>
+        Tu solicitud fue aprobada. Ya puedes trabajar como Delivery.
+      </Text>
 
-            {fechaAprobacion ? (
-              <Text style={styles.infoDescripcion}>
-                Fecha de aprobación: {fechaAprobacion}
-              </Text>
-            ) : null}
+      {fechaAprobacion ? (
+        <Text style={styles.infoDescripcion}>
+          Fecha de aprobación: {fechaAprobacion}
+        </Text>
+      ) : null}
 
-            <View style={styles.disponibilidadFila}>
-              <Text style={styles.disponibilidadTexto}>
-                Disponibilidad: {disponible ? "Activado" : "Desactivado"}
-              </Text>
+      <View style={styles.disponibilidadFila}>
+        <Text style={styles.disponibilidadTexto}>
+          Disponibilidad: {disponible ? "Activado" : "Desactivado"}
+        </Text>
 
+        <TouchableOpacity
+          onPress={cambiarDisponibilidad}
+          style={[
+            styles.disponibilidadControl,
+            disponible
+              ? styles.disponibilidadActivado
+              : styles.disponibilidadDesactivado,
+          ]}
+        >
+          <View style={styles.disponibilidadPunto} />
+        </TouchableOpacity>
+      </View>
+    </View>
+
+    <View style={styles.franjaDorada} />
+
+    <View style={[styles.card, styles.configuracionCard]}>
+      <Text style={styles.seccionTitulo}>
+        Configuracion
+      </Text>
+
+      <Text style={styles.infoDescripcion}>
+        Configura la informacion de tu rol Delivery.
+      </Text>
+
+      <TouchableOpacity
+        onPress={() => setConfigurando(!configurando)}
+        style={[styles.botonEnviar, styles.configuracionBoton]}
+      >
+        <Text style={styles.botonEnviarTexto}>
+          {configurando
+            ? "Cerrar configuracion"
+            : "Configurar mi informacion"}
+        </Text>
+      </TouchableOpacity>
+
+      {configurando && (
+        <View style={{ marginTop: 16 }}>
+          <Text style={styles.label}>
+            Ciudad / zona de trabajo
+          </Text>
+
+          <TextInput
+            value={ciudad}
+            onChangeText={setCiudad}
+            placeholder="Ej. Portoviejo"
+            style={styles.input}
+          />
+
+          <Text style={styles.label}>
+            Tipo de vehiculo
+          </Text>
+
+          <View style={styles.vehiculos}>
+            {[
+              { valor: "moto", nombre: "Moto", icono: "motorbike" },
+              { valor: "auto", nombre: "Auto", icono: "car" },
+              { valor: "bicicleta", nombre: "Bicicleta", icono: "bike" },
+            ].map((vehiculo) => (
               <TouchableOpacity
-                onPress={cambiarDisponibilidadExpreso}
+                key={vehiculo.valor}
                 style={[
-                  styles.disponibilidadControl,
-                  disponible
-                    ? styles.disponibilidadActivado
-                    : styles.disponibilidadDesactivado,
+                  styles.vehiculo,
+                  tipoVehiculo === vehiculo.valor &&
+                    styles.vehiculoActivo,
                 ]}
+                onPress={() =>
+                  setTipoVehiculo(
+                    vehiculo.valor as TipoVehiculo,
+                  )
+                }
               >
-                <View style={styles.disponibilidadPunto} />
+                <MaterialCommunityIcons
+                  name={vehiculo.icono as any}
+                  size={28}
+                  color={
+                    tipoVehiculo === vehiculo.valor
+                      ? "#FFFFFF"
+                      : "#0066CC"
+                  }
+                />
+
+                <Text
+                  style={[
+                    styles.vehiculoTexto,
+                    tipoVehiculo === vehiculo.valor &&
+                      styles.vehiculoTextoActivo,
+                  ]}
+                >
+                  {vehiculo.nombre}
+                </Text>
               </TouchableOpacity>
-            </View>
+            ))}
           </View>
 
-          <View style={styles.franjaDorada} />
+          <Text style={styles.label}>
+            Marca
+          </Text>
 
-          <View style={[styles.card, styles.configuracionCard]}>
-            <Text style={styles.seccionTitulo}>Configuración</Text>
-            <Text style={styles.infoDescripcion}>Configura la información de tu rol Expreso.</Text>
-            <TouchableOpacity
-              onPress={() => setConfigurando(!configurando)}
-              style={[styles.botonEnviar, styles.configuracionBoton]}
-            >
-              <Text style={styles.botonEnviarTexto}>
-                {configurando ? "Cerrar configuración" : "Configurar mi información"}
+          <TextInput
+            value={marca}
+            onChangeText={setMarca}
+            placeholder="Ej. Honda"
+            style={styles.input}
+          />
+
+          <Text style={styles.label}>
+            Modelo
+          </Text>
+
+          <TextInput
+            value={modelo}
+            onChangeText={setModelo}
+            placeholder="Ej. CB190"
+            style={styles.input}
+          />
+
+          <Text style={styles.label}>
+            Anio
+          </Text>
+
+          <TextInput
+            value={anio}
+            onChangeText={setAnio}
+            placeholder="Ej. 2024"
+            keyboardType="numeric"
+            style={styles.input}
+          />
+
+          <Text style={styles.label}>
+            Color
+          </Text>
+
+          <TextInput
+            value={color}
+            onChangeText={setColor}
+            placeholder="Ej. Negro"
+            style={styles.input}
+          />
+
+          {tipoVehiculo !== "bicicleta" && (
+            <>
+              <Text style={styles.label}>
+                Placa
               </Text>
-            </TouchableOpacity>
 
-            {configurando && (
-              <View style={{ marginTop: 16 }}>
-                <Text style={styles.label}>
-                  Ciudad / zona de trabajo
-                </Text>
+              <TextInput
+                value={placa}
+                onChangeText={setPlaca}
+                placeholder="Ej. ABC-1234"
+                autoCapitalize="characters"
+                style={styles.input}
+              />
+            </>
+          )}
 
-                <TextInput
-                  value={ciudad}
-                  onChangeText={setCiudad}
-                  placeholder="Ej. Portoviejo"
-                  style={styles.input}
-                />
-
-                <Text style={styles.label}>
-                  Tipo de vehiculo
-                </Text>
-
-                <View style={styles.vehiculos}>
-                  {[
-                    { valor: "moto", nombre: "Moto", icono: "motorbike" },
-                    { valor: "auto", nombre: "Auto", icono: "car" },
-                    { valor: "bicicleta", nombre: "Bicicleta", icono: "bike" },
-                  ].map((vehiculo) => (
-                    <TouchableOpacity
-                      key={vehiculo.valor}
-                      style={[
-                        styles.vehiculo,
-                        tipoVehiculo === vehiculo.valor &&
-                          styles.vehiculoActivo,
-                      ]}
-                      onPress={() =>
-                        setTipoVehiculo(
-                          vehiculo.valor as TipoVehiculo,
-                        )
-                      }
-                    >
-                      <MaterialCommunityIcons
-                        name={vehiculo.icono as any}
-                        size={28}
-                        color={
-                          tipoVehiculo === vehiculo.valor
-                            ? "#FFFFFF"
-                            : "#0066CC"
-                        }
-                      />
-
-                      <Text
-                        style={[
-                          styles.vehiculoTexto,
-                          tipoVehiculo === vehiculo.valor &&
-                            styles.vehiculoTextoActivo,
-                        ]}
-                      >
-                        {vehiculo.nombre}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-
-                <Text style={styles.label}>Marca</Text>
-
-                <TextInput
-                  value={marca}
-                  onChangeText={setMarca}
-                  placeholder="Ej. Honda"
-                  style={styles.input}
-                />
-
-                <Text style={styles.label}>Modelo</Text>
-
-                <TextInput
-                  value={modelo}
-                  onChangeText={setModelo}
-                  placeholder="Ej. CB190"
-                  style={styles.input}
-                />
-
-                <Text style={styles.label}>Año</Text>
-
-                <TextInput
-                  value={anio}
-                  onChangeText={setAnio}
-                  placeholder="Ej. 2024"
-                  keyboardType="numeric"
-                  style={styles.input}
-                />
-
-                <Text style={styles.label}>Color</Text>
-
-                <TextInput
-                  value={color}
-                  onChangeText={setColor}
-                  placeholder="Ej. Negro"
-                  style={styles.input}
-                />
-
-                {tipoVehiculo !== "bicicleta" && (
-                  <>
-                    <Text style={styles.label}>Placa</Text>
-
-                    <TextInput
-                      value={placa}
-                      onChangeText={setPlaca}
-                      placeholder="Ej. ABC-1234"
-                      autoCapitalize="characters"
-                      style={styles.input}
-                    />
-                  </>
-                )}
-
-                <TouchableOpacity
-                  style={[
-                    styles.botonEnviar,
-                    guardando && styles.botonDeshabilitado,
-                  ]}
-                  onPress={guardarConfiguracionExpreso}
-                  disabled={guardando}
-                >
-                  {guardando ? (
-                    <ActivityIndicator color="#FFFFFF" />
-                  ) : (
-                    <Text style={styles.botonEnviarTexto}>
-                      Guardar cambios
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              </View>
+          <TouchableOpacity
+            style={[
+              styles.botonEnviar,
+              guardando && styles.botonDeshabilitado,
+            ]}
+            onPress={guardarConfiguracionDelivery}
+            disabled={guardando}
+          >
+            {guardando ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <Text style={styles.botonEnviarTexto}>
+                Guardar cambios
+              </Text>
             )}
-            </View>
-          </>
-        )}
-
-        {!rolExpresoAprobado && (
+          </TouchableOpacity>
+        </View>
+      )}
+    </View>
+  </>
+)}
+{!rolDeliveryAprobado && (
           <>
         <Text style={styles.seccionTitulo}>
-          Información personal
+          InformaciÃ³n personal
         </Text>
 
         <View style={styles.card}>
@@ -1189,7 +1205,7 @@ const cambiarDisponibilidadExpreso = async () => {
           />
 
           <Text style={styles.label}>
-            Teléfono
+            TelÃ©fono
           </Text>
 
           <TextInput
@@ -1214,12 +1230,12 @@ const cambiarDisponibilidadExpreso = async () => {
         </View>
 
         <Text style={styles.seccionTitulo}>
-          Vehículo
+          VehÃ­culo
         </Text>
 
         <View style={styles.card}>
           <Text style={styles.label}>
-            Tipo de vehiculo
+            Tipo de vehÃ­culo
           </Text>
 
           <View style={styles.vehiculos}>
@@ -1304,7 +1320,7 @@ const cambiarDisponibilidadExpreso = async () => {
           />
 
           <Text style={styles.label}>
-            Año
+            AÃ±o
           </Text>
 
           <TextInput
@@ -1345,19 +1361,19 @@ const cambiarDisponibilidadExpreso = async () => {
         </View>
 
         <Text style={styles.seccionTitulo}>
-          Documentación
+          DocumentaciÃ³n
         </Text>
 
         <DocumentoCard
-          titulo="Cédula"
-          descripcion="Sube una fotografía clara de tu cédula."
+          titulo="CÃ©dula"
+          descripcion="Sube una fotografÃ­a clara de tu cÃ©dula."
           tipo="cedula"
           subido={documentos.cedula}
         />
 
         <DocumentoCard
           titulo="Licencia de conducir"
-          descripcion="Sube una fotografía clara de tu licencia."
+          descripcion="Sube una fotografÃ­a clara de tu licencia."
           tipo="licencia"
           subido={documentos.licencia}
         />
@@ -1365,8 +1381,8 @@ const cambiarDisponibilidadExpreso = async () => {
         {tipoVehiculo !==
           "bicicleta" && (
           <DocumentoCard
-            titulo="Matrícula"
-            descripcion="Sube una fotografía clara de la matrícula."
+            titulo="MatrÃ­cula"
+            descripcion="Sube una fotografÃ­a clara de la matrÃ­cula."
             tipo="matricula"
             subido={documentos.matricula}
           />
@@ -1392,7 +1408,7 @@ const cambiarDisponibilidadExpreso = async () => {
               styles.verificacionTitulo
             }
           >
-            Fotografía de verificación
+            FotografÃ­a de verificaciÃ³n
           </Text>
 
           <Text
@@ -1400,10 +1416,10 @@ const cambiarDisponibilidadExpreso = async () => {
               styles.verificacionDescripcion
             }
           >
-            Esta fotografía debe tomarse
-            directamente con la cámara
+            Esta fotografÃ­a debe tomarse
+            directamente con la cÃ¡mara
             frontal. No se puede seleccionar
-            desde la galer?a.
+            desde la galerÃ­a.
           </Text>
 
           <TouchableOpacity
@@ -1427,8 +1443,8 @@ const cambiarDisponibilidadExpreso = async () => {
               }
             >
               {documentos.fotoVerificacion
-                ? "Tomar nueva fotografía"
-                : "Tomar fotografía"}
+                ? "Tomar nueva fotografÃ­a"
+                : "Tomar fotografÃ­a"}
             </Text>
           </TouchableOpacity>
         </View>
@@ -1442,8 +1458,8 @@ const cambiarDisponibilidadExpreso = async () => {
 
           <Text style={styles.seguridadTexto}>
             Tus documentos de identidad se
-            almacenan en un área privada de
-            FrancisCorp y no son públicos.
+            almacenan en un Ã¡rea privada de
+            FrancisCorp y no son pÃºblicos.
           </Text>
         </View>
 
@@ -1480,9 +1496,9 @@ const cambiarDisponibilidadExpreso = async () => {
         </TouchableOpacity>
 
         <Text style={styles.notaFinal}>
-          Tu cuenta seguirá siendo una sola
-          cuenta FrancisCorp. El rol Expreso
-          se añadirá a tu usuario existente.
+          Tu cuenta seguirÃ¡ siendo una sola
+          cuenta FrancisCorp. El rol Delivery
+          se aÃ±adirÃ¡ a tu usuario existente.
         </Text>
           </>
         )}
@@ -1858,11 +1874,6 @@ disponibilidadPunto: {
     marginTop: 15,
   },
 });
-
-
-
-
-
 
 
 

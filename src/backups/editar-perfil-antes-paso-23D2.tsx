@@ -161,13 +161,6 @@ export default function EditarPerfilScreen() {
           telefono,
           direccion,
           ciudad,
-          ubicacion: {
-            direccion: direccion.trim(),
-            ciudad: ciudad.trim(),
-            provincia: provincia.trim(),
-            latitud: ubicacionMapa?.latitud ?? null,
-            longitud: ubicacionMapa?.longitud ?? null,
-          },
         }
       );
 
@@ -248,21 +241,23 @@ export default function EditarPerfilScreen() {
         value={telefono}
         onChangeText={setTelefono}
       />
-      <SelectorUbicacion
-        titulo="Dirección de entrega"
-        valorInicial={{
-          direccion,
-          ciudad,
-          provincia,
-          latitud: ubicacionMapa?.latitud,
-          longitud: ubicacionMapa?.longitud,
-        }}
-        onUbicacionSeleccionada={(ubicacion) => {
-          setUbicacionMapa(ubicacion);
-          setDireccion(ubicacion.direccion);
-          setCiudad(ubicacion.ciudad);
-          setProvincia(ubicacion.provincia);
-        }}
+
+
+
+      <TextInput
+        style={styles.input}
+        placeholder="Dirección"
+        value={direccion}
+        onChangeText={setDireccion}
+      />
+
+
+
+      <TextInput
+        style={styles.input}
+        placeholder="Ciudad"
+        value={ciudad}
+        onChangeText={setCiudad}
       />
 
 
@@ -384,7 +379,5 @@ const styles = StyleSheet.create({
 
 
 });
-
-
 
 

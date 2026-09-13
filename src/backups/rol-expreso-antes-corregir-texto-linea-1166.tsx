@@ -1163,8 +1163,7 @@ const cambiarDisponibilidadExpreso = async () => {
                   )}
                 </TouchableOpacity>
               </View>
-            )}
-            </View>
+            )}          </View>
           </>
         )}
 

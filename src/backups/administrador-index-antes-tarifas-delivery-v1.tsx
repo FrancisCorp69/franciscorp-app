@@ -34,12 +34,6 @@ const MODULOS: Modulo[] = [
     ruta: "/administrador/expreso",
   },
   {
-    titulo: "Tarifas de Delivery",
-    icono: "cash-fast",
-    activo: true,
-    ruta: "/administrador/tarifas-delivery",
-  },
-  {
     titulo: "Usuarios",
     icono: "account-group-outline",
     activo: false,
@@ -369,5 +363,4 @@ const styles = StyleSheet.create({
     color: "#999",
   },
 });
-
 

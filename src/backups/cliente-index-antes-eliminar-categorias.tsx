@@ -1,8 +1,9 @@
-﻿import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet } from "react-native";
 
+import Categories from "../../components/cliente/Categories";
 import DeliveryAddress from "../../components/cliente/DeliveryAddress";
 import FeaturedBusinesses from "../../components/cliente/FeaturedBusinesses";
 import Header from "../../components/cliente/Header";
@@ -101,6 +102,7 @@ export default function ClienteScreen() {
 
       <FeaturedBusinesses businesses={businesses} />
 
+      <Categories />
     </ScrollView>
   );
 }
@@ -115,4 +117,3 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
   },
 });
-

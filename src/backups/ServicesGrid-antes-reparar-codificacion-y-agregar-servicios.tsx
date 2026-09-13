@@ -5,79 +5,80 @@ const servicios = [
   {
     id: "delivery",
     nombre: "Delivery",
-    icono: "🚚",
+    icono: "ðŸšš",
     ruta: "/servicios/delivery",
   },
   {
     id: "expreso",
     nombre: "Expreso",
-    icono: "🚕",
+    icono: "ðŸš•",
     ruta: "/expreso",
   },
   {
     id: "compras",
     nombre: "Compras",
-    icono: "🛒",
+    icono: "ðŸ›’",
     ruta: "/servicios",
   },
   {
     id: "farmacia",
     nombre: "Farmacia",
-    icono: "💊",
+    icono: "ðŸ’Š",
     ruta: "/farmacia",
   },
   {
     id: "tiendas",
     nombre: "Tiendas",
-    icono: "🏪",
+    icono: "ðŸª",
     ruta: "/empresa",
   },
   {
     id: "flete",
     nombre: "Flete",
-    icono: "📦",
+    icono: "ðŸ“¦",
     ruta: "/flete",
   },
   {
     id: "empleo",
     nombre: "Empleo",
-    icono: "💼",
+    icono: "ðŸ’¼",
     ruta: "/empleo",
   },
   {
     id: "servicios",
     nombre: "Servicios",
-    icono: "🛠️",
+    icono: "ðŸ› ï¸",
     ruta: "/servicios",
   },
   {
     id: "restaurantes",
     nombre: "Restaurantes",
-    icono: "\u{1F37D}\uFE0F",
+    icono: "ðŸ½ï¸",
     ruta: "/restaurantes",
   },
   {
     id: "grua",
-    nombre: "Gr?a",
-    icono: "\u{1F697}",
+    nombre: "GrÃºa",
+    icono: "ðŸš—",
     ruta: null,
   },
   {
     id: "salud",
     nombre: "Salud",
-    icono: "\u2695\uFE0F",
+    icono: "âš•ï¸",
     ruta: null,
   },
   {
     id: "ambulancia",
     nombre: "Ambulancia",
-    icono: "\u{1F691}",
+    icono: "ðŸš‘",
     ruta: null,
   },
 ];
 
 export default function ServicesGrid() {
   const abrirServicio = (ruta: string | null) => {
+    if (!ruta) return;
     router.push(ruta as any);
   };
 
@@ -152,4 +153,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
+
+
 

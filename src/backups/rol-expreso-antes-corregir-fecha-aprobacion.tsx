@@ -1163,8 +1163,7 @@ const cambiarDisponibilidadExpreso = async () => {
                   )}
                 </TouchableOpacity>
               </View>
-            )}
-            </View>
+            )}          </View>
           </>
         )}
 
@@ -1858,7 +1857,6 @@ disponibilidadPunto: {
     marginTop: 15,
   },
 });
-
 
 
 

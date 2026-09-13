@@ -161,13 +161,6 @@ export default function EditarPerfilScreen() {
           telefono,
           direccion,
           ciudad,
-          ubicacion: {
-            direccion: direccion.trim(),
-            ciudad: ciudad.trim(),
-            provincia: provincia.trim(),
-            latitud: ubicacionMapa?.latitud ?? null,
-            longitud: ubicacionMapa?.longitud ?? null,
-          },
         }
       );
 
@@ -384,7 +377,6 @@ const styles = StyleSheet.create({
 
 
 });
-
 
 
 

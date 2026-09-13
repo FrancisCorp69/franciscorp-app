@@ -1,4 +1,4 @@
-﻿import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system/legacy";
 import { router } from "expo-router";
@@ -526,7 +526,7 @@ const cambiarDisponibilidadExpreso = async () => {
       if (!marca.trim()) {
         Alert.alert(
           "Falta información",
-          "Ingresa la marca del vehiculo.",
+          "Ingresa la marca del vehículo.",
         );
         return;
       }
@@ -534,7 +534,7 @@ const cambiarDisponibilidadExpreso = async () => {
       if (!modelo.trim()) {
         Alert.alert(
           "Falta información",
-          "Ingresa el modelo del vehiculo.",
+          "Ingresa el modelo del vehículo.",
         );
         return;
       }
@@ -542,7 +542,7 @@ const cambiarDisponibilidadExpreso = async () => {
       if (!anio.trim()) {
         Alert.alert(
           "Falta información",
-          "Ingresa el año del vehiculo.",
+          "Ingresa el año del vehículo.",
         );
         return;
       }
@@ -550,7 +550,7 @@ const cambiarDisponibilidadExpreso = async () => {
       if (!color.trim()) {
         Alert.alert(
           "Falta información",
-          "Ingresa el color del vehiculo.",
+          "Ingresa el color del vehículo.",
         );
         return;
       }
@@ -561,7 +561,7 @@ const cambiarDisponibilidadExpreso = async () => {
       ) {
         Alert.alert(
           "Falta información",
-          "Ingresa la placa del vehiculo.",
+          "Ingresa la placa del vehículo.",
         );
         return;
       }
@@ -622,7 +622,7 @@ const cambiarDisponibilidadExpreso = async () => {
       if (!marca.trim()) {
         Alert.alert(
           "Falta información",
-          "Ingresa la marca del vehiculo.",
+          "Ingresa la marca del vehículo.",
         );
 
         return;
@@ -631,7 +631,7 @@ const cambiarDisponibilidadExpreso = async () => {
       if (!modelo.trim()) {
         Alert.alert(
           "Falta información",
-          "Ingresa el modelo del vehiculo.",
+          "Ingresa el modelo del vehículo.",
         );
 
         return;
@@ -640,7 +640,7 @@ const cambiarDisponibilidadExpreso = async () => {
       if (!anio.trim()) {
         Alert.alert(
           "Falta información",
-          "Ingresa el año del vehiculo.",
+          "Ingresa el año del vehículo.",
         );
 
         return;
@@ -649,7 +649,7 @@ const cambiarDisponibilidadExpreso = async () => {
       if (!color.trim()) {
         Alert.alert(
           "Falta información",
-          "Ingresa el color del vehiculo.",
+          "Ingresa el color del vehículo.",
         );
 
         return;
@@ -661,7 +661,7 @@ const cambiarDisponibilidadExpreso = async () => {
       ) {
         Alert.alert(
           "Falta información",
-          "Ingresa la placa del vehiculo.",
+          "Ingresa la placa del vehículo.",
         );
 
         return;
@@ -981,7 +981,7 @@ const cambiarDisponibilidadExpreso = async () => {
               Para trabajar como Expreso,
               FrancisCorp debe verificar tu
               identidad y la información de tu
-              vehiculo.
+              vehículo.
             </Text>
           </View>
         </View>
@@ -999,7 +999,7 @@ const cambiarDisponibilidadExpreso = async () => {
 
             {fechaAprobacion ? (
               <Text style={styles.infoDescripcion}>
-                Fecha de aprobación: {fechaAprobacion}
+                Fecha de aprobaci?n: {fechaAprobacion}
               </Text>
             ) : null}
 
@@ -1060,23 +1060,23 @@ const cambiarDisponibilidadExpreso = async () => {
                     { valor: "bicicleta", nombre: "Bicicleta", icono: "bike" },
                   ].map((vehiculo) => (
                     <TouchableOpacity
-                      key={vehiculo.valor}
+                      key={vehículo.valor}
                       style={[
                         styles.vehiculo,
-                        tipoVehiculo === vehiculo.valor &&
+                        tipoVehiculo === vehículo.valor &&
                           styles.vehiculoActivo,
                       ]}
                       onPress={() =>
                         setTipoVehiculo(
-                          vehiculo.valor as TipoVehiculo,
+                          vehículo.valor as TipoVehiculo,
                         )
                       }
                     >
                       <MaterialCommunityIcons
-                        name={vehiculo.icono as any}
+                        name={vehículo.icono as any}
                         size={28}
                         color={
-                          tipoVehiculo === vehiculo.valor
+                          tipoVehiculo === vehículo.valor
                             ? "#FFFFFF"
                             : "#0066CC"
                         }
@@ -1085,11 +1085,11 @@ const cambiarDisponibilidadExpreso = async () => {
                       <Text
                         style={[
                           styles.vehiculoTexto,
-                          tipoVehiculo === vehiculo.valor &&
+                          tipoVehiculo === vehículo.valor &&
                             styles.vehiculoTextoActivo,
                         ]}
                       >
-                        {vehiculo.nombre}
+                        {vehículo.nombre}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -1163,8 +1163,7 @@ const cambiarDisponibilidadExpreso = async () => {
                   )}
                 </TouchableOpacity>
               </View>
-            )}
-            </View>
+            )}          </View>
           </>
         )}
 
@@ -1241,27 +1240,27 @@ const cambiarDisponibilidadExpreso = async () => {
               },
             ].map((vehiculo) => (
               <TouchableOpacity
-                key={vehiculo.valor}
+                key={vehículo.valor}
                 style={[
                   styles.vehiculo,
                   tipoVehiculo ===
-                    vehiculo.valor &&
+                    vehículo.valor &&
                     styles.vehiculoActivo,
                 ]}
                 onPress={() =>
                   setTipoVehiculo(
-                    vehiculo.valor as TipoVehiculo,
+                    vehículo.valor as TipoVehiculo,
                   )
                 }
               >
                 <MaterialCommunityIcons
                   name={
-                    vehiculo.icono as any
+                    vehículo.icono as any
                   }
                   size={30}
                   color={
                     tipoVehiculo ===
-                    vehiculo.valor
+                    vehículo.valor
                       ? "#FFFFFF"
                       : "#0066CC"
                   }
@@ -1271,11 +1270,11 @@ const cambiarDisponibilidadExpreso = async () => {
                   style={[
                     styles.vehiculoTexto,
                     tipoVehiculo ===
-                      vehiculo.valor &&
+                      vehículo.valor &&
                       styles.vehiculoTextoActivo,
                   ]}
                 >
-                  {vehiculo.nombre}
+                  {vehículo.nombre}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -1858,8 +1857,6 @@ disponibilidadPunto: {
     marginTop: 15,
   },
 });
-
-
 
 
 

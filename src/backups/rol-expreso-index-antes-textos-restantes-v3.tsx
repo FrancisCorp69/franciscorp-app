@@ -1,4 +1,4 @@
-﻿import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system/legacy";
 import { router } from "expo-router";
@@ -526,7 +526,7 @@ const cambiarDisponibilidadExpreso = async () => {
       if (!marca.trim()) {
         Alert.alert(
           "Falta información",
-          "Ingresa la marca del vehiculo.",
+          "Ingresa la marca del vehículo.",
         );
         return;
       }
@@ -534,7 +534,7 @@ const cambiarDisponibilidadExpreso = async () => {
       if (!modelo.trim()) {
         Alert.alert(
           "Falta información",
-          "Ingresa el modelo del vehiculo.",
+          "Ingresa el modelo del vehículo.",
         );
         return;
       }
@@ -542,7 +542,7 @@ const cambiarDisponibilidadExpreso = async () => {
       if (!anio.trim()) {
         Alert.alert(
           "Falta información",
-          "Ingresa el año del vehiculo.",
+          "Ingresa el año del vehículo.",
         );
         return;
       }
@@ -550,7 +550,7 @@ const cambiarDisponibilidadExpreso = async () => {
       if (!color.trim()) {
         Alert.alert(
           "Falta información",
-          "Ingresa el color del vehiculo.",
+          "Ingresa el color del vehículo.",
         );
         return;
       }
@@ -561,7 +561,7 @@ const cambiarDisponibilidadExpreso = async () => {
       ) {
         Alert.alert(
           "Falta información",
-          "Ingresa la placa del vehiculo.",
+          "Ingresa la placa del vehículo.",
         );
         return;
       }
@@ -589,7 +589,7 @@ const cambiarDisponibilidadExpreso = async () => {
       setConfigurando(false);
 
       Alert.alert(
-        "Configuración guardada",
+        "Configuraci?n guardada",
         "Los cambios de tu información Expreso fueron guardados correctamente.",
       );
     } catch (error) {
@@ -622,7 +622,7 @@ const cambiarDisponibilidadExpreso = async () => {
       if (!marca.trim()) {
         Alert.alert(
           "Falta información",
-          "Ingresa la marca del vehiculo.",
+          "Ingresa la marca del vehículo.",
         );
 
         return;
@@ -631,7 +631,7 @@ const cambiarDisponibilidadExpreso = async () => {
       if (!modelo.trim()) {
         Alert.alert(
           "Falta información",
-          "Ingresa el modelo del vehiculo.",
+          "Ingresa el modelo del vehículo.",
         );
 
         return;
@@ -640,7 +640,7 @@ const cambiarDisponibilidadExpreso = async () => {
       if (!anio.trim()) {
         Alert.alert(
           "Falta información",
-          "Ingresa el año del vehiculo.",
+          "Ingresa el año del vehículo.",
         );
 
         return;
@@ -649,7 +649,7 @@ const cambiarDisponibilidadExpreso = async () => {
       if (!color.trim()) {
         Alert.alert(
           "Falta información",
-          "Ingresa el color del vehiculo.",
+          "Ingresa el color del vehículo.",
         );
 
         return;
@@ -661,7 +661,7 @@ const cambiarDisponibilidadExpreso = async () => {
       ) {
         Alert.alert(
           "Falta información",
-          "Ingresa la placa del vehiculo.",
+          "Ingresa la placa del vehículo.",
         );
 
         return;
@@ -699,7 +699,7 @@ const cambiarDisponibilidadExpreso = async () => {
 
       if (!documentos.fotoVerificacion) {
         Alert.alert(
-          "Verificación pendiente",
+          "Verificaci?n pendiente",
           "Debes tomar la fotografía de verificación con la cámara.",
         );
 
@@ -974,7 +974,7 @@ const cambiarDisponibilidadExpreso = async () => {
 
           <View style={styles.infoTexto}>
             <Text style={styles.infoTitulo}>
-              Verificación de identidad
+              Verificaci?n de identidad
             </Text>
 
             <Text style={styles.infoDescripcion}>
@@ -999,7 +999,7 @@ const cambiarDisponibilidadExpreso = async () => {
 
             {fechaAprobacion ? (
               <Text style={styles.infoDescripcion}>
-                Fecha de aprobación: {fechaAprobacion}
+                Fecha de aprobaci?n: {fechaAprobacion}
               </Text>
             ) : null}
 
@@ -1025,7 +1025,7 @@ const cambiarDisponibilidadExpreso = async () => {
           <View style={styles.franjaDorada} />
 
           <View style={[styles.card, styles.configuracionCard]}>
-            <Text style={styles.seccionTitulo}>Configuración</Text>
+            <Text style={styles.seccionTitulo}>Configuraci?n</Text>
             <Text style={styles.infoDescripcion}>Configura la información de tu rol Expreso.</Text>
             <TouchableOpacity
               onPress={() => setConfigurando(!configurando)}
@@ -1163,15 +1163,14 @@ const cambiarDisponibilidadExpreso = async () => {
                   )}
                 </TouchableOpacity>
               </View>
-            )}
-            </View>
+            )}          </View>
           </>
         )}
 
         {!rolExpresoAprobado && (
           <>
         <Text style={styles.seccionTitulo}>
-          Información personal
+          Informaci?n personal
         </Text>
 
         <View style={styles.card}>
@@ -1349,7 +1348,7 @@ const cambiarDisponibilidadExpreso = async () => {
         </Text>
 
         <DocumentoCard
-          titulo="Cédula"
+          titulo="C?dula"
           descripcion="Sube una fotografía clara de tu cédula."
           tipo="cedula"
           subido={documentos.cedula}
@@ -1365,7 +1364,7 @@ const cambiarDisponibilidadExpreso = async () => {
         {tipoVehiculo !==
           "bicicleta" && (
           <DocumentoCard
-            titulo="Matrícula"
+            titulo="Matr?cula"
             descripcion="Sube una fotografía clara de la matrícula."
             tipo="matricula"
             subido={documentos.matricula}
@@ -1392,7 +1391,7 @@ const cambiarDisponibilidadExpreso = async () => {
               styles.verificacionTitulo
             }
           >
-            Fotografía de verificación
+            Fotograf?a de verificación
           </Text>
 
           <Text
@@ -1858,8 +1857,6 @@ disponibilidadPunto: {
     marginTop: 15,
   },
 });
-
-
 
 
 
