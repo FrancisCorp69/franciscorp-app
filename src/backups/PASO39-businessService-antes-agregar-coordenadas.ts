@@ -24,8 +24,6 @@ export interface Business {
     provincia?: string;
     referencia?: string;
     zonaCobertura?: string;
-    latitud?: number;
-    longitud?: number;
   };
 
   foto?: string;
@@ -55,4 +53,3 @@ export async function getBusinesses(): Promise<Business[]> {
     return [];
   }
 }
-

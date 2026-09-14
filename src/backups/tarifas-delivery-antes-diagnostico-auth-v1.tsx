@@ -1,4 +1,4 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+﻿import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import {
   doc,
@@ -125,33 +125,6 @@ export default function TarifasDeliveryScreen() {
   async function cargarConfiguracion() {
     try {
       const usuario = auth.currentUser;
-
-      console.log("=== DIAGNOSTICO TARIFAS DELIVERY ===");
-      console.log("AUTH CURRENT USER:", usuario ? "SI" : "NO");
-
-      if (usuario) {
-        console.log("UID:", usuario.uid);
-        console.log("EMAIL:", usuario.email || "(sin correo)");
-
-        try {
-          const tokenResult = await usuario.getIdTokenResult(true);
-
-          console.log(
-            "ADMIN CLAIM:",
-            tokenResult.claims.admin === true ? "SI" : "NO"
-          );
-
-          console.log(
-            "CLAIMS:",
-            tokenResult.claims
-          );
-        } catch (errorToken) {
-          console.error(
-            "ERROR OBTENIENDO TOKEN ADMIN:",
-            errorToken
-          );
-        }
-      }
 
       if (!usuario) {
         router.replace("/login");

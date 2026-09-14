@@ -76,13 +76,13 @@ service cloud.firestore {
 
 
       // -------------------------------------------------------
-      // CREACIÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œN
+      // CREACIÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“N
       // -------------------------------------------------------
       //
       // El usuario puede crear su propio perfil.
       //
-      // Si incluye Delivery desde el comienzo, ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âºnicamente
-      // puede crearlo como solicitud pendiente y en revisiÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n.
+      // Si incluye Delivery desde el comienzo, ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âºnicamente
+      // puede crearlo como solicitud pendiente y en revisiÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n.
       //
 
       allow create: if esPropietario(userId)
@@ -95,7 +95,7 @@ service cloud.firestore {
 
 
       // -------------------------------------------------------
-      // ACTUALIZACIÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œN
+      // ACTUALIZACIÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“N
       // -------------------------------------------------------
 
       allow update: if esPropietario(userId)
@@ -119,8 +119,8 @@ service cloud.firestore {
                       // 2. CREAR / COMPLETAR SOLICITUD DELIVERY
                       // -----------------------------------------
                       //
-                      // Mientras no estÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© aprobado, el usuario
-                      // puede completar su solicitud, pero jamÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡s
+                      // Mientras no estÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© aprobado, el usuario
+                      // puede completar su solicitud, pero jamÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡s
                       // puede activarla.
                       //
                       (
@@ -215,7 +215,7 @@ service cloud.firestore {
 
 
       // -------------------------------------------------------
-      // ELIMINACIÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œN
+      // ELIMINACIÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“N
       // -------------------------------------------------------
 
       allow delete: if false;
@@ -525,6 +525,7 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+  }
 
   match /solicitudes_expreso/{solicitudId} {
 
@@ -569,23 +570,23 @@ service cloud.firestore {
                   && request.resource.data.estado == "cancelado";
 
     allow delete: if false;
+
+    // =========================================================
+
+// CONFIGURACION DE DELIVERY
+    // =========================================================
+    //
+    // Los usuarios autenticados pueden leer las tarifas para
+    // calcular el costo de envío.
+    //
+    // Solo los administradores pueden modificar esta configuración.
+    //
+
+    match /configuracion/delivery {
+
+      allow read: if request.auth != null;
+
+      allow create, update, delete: if isAdmin();
+    }
   }
-
-  // =========================================================
-  // CONFIGURACION DE DELIVERY
-  // =========================================================
-  //
-  // Los usuarios autenticados pueden leer las tarifas para
-  // calcular el costo de envio.
-  //
-  // Solo los administradores pueden modificar esta configuracion.
-  //
-
-  match /configuracion/delivery {
-
-    allow read: if request.auth != null;
-
-    allow create, update, delete: if isAdmin();
-  }
-}
 }

@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -26,13 +26,6 @@ import {
 
 import { auth, db } from "../services/firebase";
 import { useCart } from "../context/CartContext";
-import SelectorUbicacion, {
-  UbicacionSeleccionada,
-} from "../components/SelectorUbicacion";
-import {
-  calcularCostoDelivery,
-  CoordenadasUbicacion,
-} from "../services/deliveryService";
 
 type ModalActivo =
   | "direccion"
@@ -432,12 +425,6 @@ export default function ConfirmarPedidoScreen() {
 
   const [costoEntrega, setCostoEntrega] = useState(0);
   const [cargandoEnvio, setCargandoEnvio] = useState(true);
-  const [distanciaKm, setDistanciaKm] = useState<number | null>(null);
-  const [ubicacionCliente, setUbicacionCliente] =
-    useState<UbicacionSeleccionada | null>(null);
-  const [ubicacionNegocio, setUbicacionNegocio] =
-    useState<CoordenadasUbicacion | null>(null);
-  const [errorEnvio, setErrorEnvio] = useState("");
   const [confirmando, setConfirmando] = useState(false);
 
   const [modalActivo, setModalActivo] =
@@ -450,9 +437,9 @@ export default function ConfirmarPedidoScreen() {
     useState("");
 
   useEffect(() => {
-    async function cargarUbicacionNegocio() {
+    async function cargarDatosNegocio() {
       if (!cart?.negocioId) {
-        setUbicacionNegocio(null);
+        setCargandoEnvio(false);
         return;
       }
 
@@ -465,97 +452,26 @@ export default function ConfirmarPedidoScreen() {
 
         const negocioSnap = await getDoc(negocioRef);
 
-        if (!negocioSnap.exists()) {
-          throw new Error(
-            "No se encontro la informacion del negocio."
-          );
+        if (negocioSnap.exists()) {
+          const datos = negocioSnap.data();
+
+          const costo =
+            Number(datos.costoEntrega) || 0;
+
+          setCostoEntrega(costo);
         }
-
-        const datos = negocioSnap.data();
-
-        const latitud = Number(
-          datos.ubicacion?.latitud
-        );
-
-        const longitud = Number(
-          datos.ubicacion?.longitud
-        );
-
-        if (
-          !Number.isFinite(latitud) ||
-          !Number.isFinite(longitud)
-        ) {
-          throw new Error(
-            "El negocio aun no tiene una ubicacion seleccionada en el mapa."
-          );
-        }
-
-        setUbicacionNegocio({
-          latitud,
-          longitud,
-        });
       } catch (error) {
         console.error(
-          "ERROR OBTENIENDO UBICACION DEL NEGOCIO:",
+          "Error obteniendo costo de entrega:",
           error
-        );
-
-        setUbicacionNegocio(null);
-        setErrorEnvio(
-          error instanceof Error
-            ? error.message
-            : "No se pudo obtener la ubicacion del negocio."
-        );
-      }
-    }
-
-    cargarUbicacionNegocio();
-  }, [cart?.negocioId]);
-
-  useEffect(() => {
-    async function calcularEnvio() {
-      if (!ubicacionNegocio || !ubicacionCliente) {
-        setCostoEntrega(0);
-        setDistanciaKm(null);
-        setCargandoEnvio(false);
-        return;
-      }
-
-      try {
-        setCargandoEnvio(true);
-        setErrorEnvio("");
-
-        const resultado = await calcularCostoDelivery(
-          ubicacionNegocio,
-          {
-            latitud: ubicacionCliente.latitud,
-            longitud: ubicacionCliente.longitud,
-          }
-        );
-
-        setDistanciaKm(resultado.distanciaKm);
-        setCostoEntrega(resultado.costoEntrega);
-      } catch (error) {
-        console.error(
-          "ERROR CALCULANDO DELIVERY:",
-          error
-        );
-
-        setCostoEntrega(0);
-        setDistanciaKm(null);
-
-        setErrorEnvio(
-          error instanceof Error
-            ? error.message
-            : "No se pudo calcular el costo de envio."
         );
       } finally {
         setCargandoEnvio(false);
       }
     }
 
-    calcularEnvio();
-  }, [ubicacionNegocio, ubicacionCliente]);
+    cargarDatosNegocio();
+  }, [cart?.negocioId]);
 
   const total = subtotal + costoEntrega;
 
@@ -656,18 +572,6 @@ export default function ConfirmarPedidoScreen() {
         subtotal,
         costoEntrega,
         total,
-
-        distanciaEntregaKm: distanciaKm,
-
-        ubicacionEntrega: ubicacionCliente
-          ? {
-              direccion: ubicacionCliente.direccion,
-              ciudad: ubicacionCliente.ciudad,
-              provincia: ubicacionCliente.provincia,
-              latitud: ubicacionCliente.latitud,
-              longitud: ubicacionCliente.longitud,
-            }
-          : null,
 
         direccionEntrega: direccion.trim(),
 
@@ -842,21 +746,45 @@ export default function ConfirmarPedidoScreen() {
           <Text style={styles.sectionTitle}>
             Entrega
           </Text>
-          <SelectorUbicacion
-            titulo="Dirección de entrega"
-            valorInicial={{
-              direccion,
-              ciudad: ubicacionCliente?.ciudad,
-              provincia: ubicacionCliente?.provincia,
-              latitud: ubicacionCliente?.latitud,
-              longitud: ubicacionCliente?.longitud,
-            }}
-            onUbicacionSeleccionada={(ubicacion) => {
-              setUbicacionCliente(ubicacion);
-              setDireccion(ubicacion.direccion);
-            }}
-          />
-{/* REFERENCIA */}
+
+          <Pressable
+            style={styles.optionCard}
+            onPress={abrirDireccion}
+          >
+            <View style={styles.optionIcon}>
+              <MaterialCommunityIcons
+                name="map-marker-outline"
+                size={27}
+                color="#555"
+              />
+            </View>
+
+            <View style={styles.optionInfo}>
+              <Text style={styles.optionTitle}>
+                Dirección de entrega
+              </Text>
+
+              <Text
+                style={[
+                  styles.optionText,
+                  direccion &&
+                    styles.optionTextSelected,
+                ]}
+                numberOfLines={2}
+              >
+                {direccion ||
+                  "Seleccionar dirección"}
+              </Text>
+            </View>
+
+            <MaterialCommunityIcons
+              name="chevron-right"
+              size={25}
+              color="#999"
+            />
+          </Pressable>
+
+          {/* REFERENCIA */}
 
           <Pressable
             style={styles.optionCard}
@@ -948,23 +876,15 @@ export default function ConfirmarPedidoScreen() {
           {/* RESUMEN */}
 
           <View style={styles.summaryCard}>
+
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>
-                Distancia
+                Subtotal
               </Text>
 
-              {cargandoEnvio ? (
-                <ActivityIndicator
-                  size="small"
-                  color="#555"
-                />
-              ) : (
-                <Text style={styles.summaryValue}>
-                  {distanciaKm !== null
-                    ? `${distanciaKm.toFixed(2)} km`
-                    : "--"}
-                </Text>
-              )}
+              <Text style={styles.summaryValue}>
+                ${subtotal.toFixed(2)}
+              </Text>
             </View>
 
             <View style={styles.summaryRow}>
@@ -979,26 +899,14 @@ export default function ConfirmarPedidoScreen() {
                 />
               ) : (
                 <Text style={styles.summaryValue}>
-                  {distanciaKm !== null
-                    ? `${costoEntrega.toFixed(2)}`
-                    : "--"}
+                  {costoEntrega > 0
+                    ? `$${costoEntrega.toFixed(2)}`
+                    : "Gratis"}
                 </Text>
               )}
             </View>
 
-            {errorEnvio ? (
-              <Text
-                style={{
-                  marginTop: 8,
-                  color: "#b00020",
-                  fontSize: 13,
-                  lineHeight: 18,
-                }}
-              >
-                {errorEnvio}
-              </Text>
-            ) : null}
-<View style={styles.divider} />
+            <View style={styles.divider} />
 
             <View style={styles.totalRow}>
               <Text style={styles.totalLabel}>
@@ -1274,7 +1182,6 @@ export default function ConfirmarPedidoScreen() {
     </KeyboardAvoidingView>
   );
 }
-
 
 
 
